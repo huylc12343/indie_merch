@@ -35,8 +35,8 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="flex flex-col max-w-[1000px] bg-white">
-            <div className="font-retroguard text-[28px] flex justify-between items-center p-8">
-              <h1>Chi tiết</h1>
+            <div className=" flex justify-between items-center p-8 pb-7">
+              <h1 className="font-retroguard text-[28px]">Chi tiết</h1>
               <Button
                 variant="ghost"
                 onClick={() => setOpen(false)}
@@ -48,7 +48,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               </Button>
             </div>
             <div className="flex mx-8 mb-10 gap-6">
-              <div className="flex flex-col max-w-[452px]">
+              <div className="flex flex-col max-w-[452px] mt-4">
                 <Image src={item.image} width={460} height={460} alt="" />
 
                 <div className="flex mt-5 gap-3 overflow-x-auto">
@@ -65,9 +65,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               </div>
               <div className="flex-col max-w-[452px] min-w-[452px] ">
                 <div className="flex-1 overflow-y-auto min-h-[520px] max-h-[520px]">
-                  <h1 className="font-retroguard text-[50px] leading-[0.6]">
+                  <span className="font-retroguard text-[50px] leading-[60px] -tracking-normal font-normal">
                     {item.name}
-                  </h1>
+                  </span>
                   <h1 className="text-5xl leading-13 font-bold text-[var(--color-primary-pink)] mt-4">
                     {" "}
                     {new Intl.NumberFormat("vi-VN").format(item.price)} đ
@@ -76,9 +76,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     {/* Button - */}
                     <Button
                       variant="outline"
-                      className="w-8 h-8 p-0 flex items-center justify-center"
+                      className="w-8 h-8 p-0 flex items-center rounded-none border-[#171717] justify-center"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-4 h-4 rounded-none" />
                     </Button>
 
                     {/* Quantity */}
@@ -87,9 +87,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     {/* Button + */}
                     <Button
                       variant="outline"
-                      className="w-8 h-8 p-0 flex items-center justify-center"
+                      className="w-8 h-8 p-0 flex items-center rounded-none border-[#171717] justify-center"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 rounded-none" />
                     </Button>
 
                     {/* Stock */}
@@ -98,21 +98,45 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                   <h3 className="mt-10 text-[#6C6C6C]">Phân loại</h3>
                   <h3 className="mt-4">Màu sắc</h3>
                   <div className="flex">
-                    <Button>Trắng</Button> <Button>Đen</Button>
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      Trắng
+                    </Button>
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      Đen
+                    </Button>
                   </div>
                   <h3 className="mt-4">Kích thước</h3>
                   <div className="flex">
-                    <Button>S</Button> <Button>M</Button> <Button>L</Button>{" "}
-                    <Button>XL</Button> <Button>XXL</Button>
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      S
+                    </Button>{" "}
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      M
+                    </Button>{" "}
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      L
+                    </Button>{" "}
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      XL
+                    </Button>{" "}
+                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
+                      XXL
+                    </Button>
                   </div>
                   <h3 className="mt-10">Mô tả sản phẩm</h3>
                   <p className="mt-4 text-[#6C6C6C] mb-10">
                     {item.description}
                   </p>
                 </div>
-                <div className="flex gap-4 pt-4 border-t mt-4">
-                  <Button className="flex-1">Thêm vào giỏ hàng</Button>
-                  <Button variant="outline" className="flex-1">
+                <div className="flex gap-4 pt-4 mt-4">
+                  <Button
+                    variant="outline"
+                    className="h-14 rounded-none border-[#171717] px-5 text-2xl font-semibold"
+                  >
+                    Thêm vào giỏ hàng
+                  </Button>
+
+                  <Button className="h-14 rounded-none px-5 text-2xl font-semibold">
                     Mua ngay
                   </Button>
                 </div>

@@ -6,14 +6,15 @@ import MerchInfo from "@/components/merchInfo/merchInfo";
 const merchData = [
   {
     id: 1,
-    name: "khăn cmm",
+    name: "khăn a",
     price: 367000,
     image: sample,
-    description: "abcdefgheijdskajd",
+    description:
+      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.",
   },
   {
     id: 2,
-    name: "khăn mmb",
+    name: "khăn b",
     price: 367000,
     image: sample,
     description:

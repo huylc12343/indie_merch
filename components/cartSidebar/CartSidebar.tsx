@@ -4,7 +4,7 @@ import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useState } from "react";
-
+import sample from "@/app/img_sample.png"
 interface CartItem {
   id: number;
   name: string;
@@ -17,13 +17,13 @@ const mockData: CartItem[] = [
     id: 1,
     name: "Khăn gấp gấp",
     price: 179000,
-    image: "/sample.png",
+    image: sample,
   },
   {
     id: 2,
     name: "Khăn tự do",
     price: 199000,
-    image: "/sample.png",
+    image: sample,
   },
 ];
 
@@ -52,8 +52,8 @@ export default function CartSidebar({
         <div className="flex flex-col h-full p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="font-bold text-lg">
-              GIỎ HÀNG <span className="text-gray-400">02</span>
+            <h2 >
+              <span className="font-retroguard text-[28px]">GIỎ HÀNG </span><span className="text-gray-400"> 02</span>
             </h2>
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <X />
@@ -71,9 +71,8 @@ export default function CartSidebar({
                 <Image
                   src={item.image}
                   alt=""
-                  width={60}
-                  height={60}
-                  className="rounded-md"
+                  width={120}
+                  height={120}                  
                 />
 
                 {/* Info */}
@@ -83,41 +82,58 @@ export default function CartSidebar({
                     {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                   </p>
 
-                  {/* Quantity */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button variant="outline" className="w-6 h-6 p-0">
-                      <Minus className="w-3 h-3" />
-                    </Button>
+                  <div className="flex items-center justify-between gap-4 py-2 rounded-md w-full">
+                    {/* Left */}
+                    <div className="flex items-center">
+                      {/* Minus */}
+                      <Button
+                        variant="outline"
+                        className="h-8 w-8 rounded-none border-[#171717] p-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
 
-                    <span className="text-sm">01</span>
+                      {/* Quantity */}
+                      <span className="flex h-8 w-8 items-center justify-center text-sm">
+                        1
+                      </span>
 
-                    <Button variant="outline" className="w-6 h-6 p-0">
-                      <Plus className="w-3 h-3" />
+                      {/* Plus */}
+                      <Button
+                        variant="outline"
+                        className="h-8 w-8 rounded-none border-[#171717] p-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Delete */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-none text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-
-                {/* Delete */}
-                <button className="text-red-500">
-                  <Trash2 size={16} />
-                </button>
               </div>
             ))}
           </div>
 
           {/* Footer */}
           <div className="border-t pt-4">
-            <div className="flex justify-between mb-4 text-sm">
+            <div className="flex justify-between items-center mb-4 text-sm">
               <span>
-                <input type="checkbox" defaultChecked className="mr-2" />
+                <input type="checkbox" defaultChecked className="mr-2 text-[16px] leading-6 " />
                 Tất cả
               </span>
-              <span className="text-[var(--color-primary-pink)] font-bold text-lg">
+              <span className="text-[var(--color-primary-pink)] font-bold text-[28px] leading-[34px]">
                 378.000 đ
               </span>
             </div>
 
-            <Button className="w-full bg-black text-white hover:bg-black/80">
+            <Button className="w-full h-14 rounded-none bg-black text-white hover:bg-black/80">
               THANH TOÁN
             </Button>
           </div>

@@ -17,8 +17,8 @@ export default function Navbar() {
       <div className="nav-item">
         <div className="nav-item">
           <Button
-            variant="ghost"
-            className="px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 tracking-normal rounded-lg h-auto"
+            
+            className="px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 tracking-normal hover:bg-black/80  rounded-none h-auto"
             style={{ fontFamily: "sans-serif" }}
             onClick={()=>setOpenCart(true)}
           >

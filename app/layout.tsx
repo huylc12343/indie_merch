@@ -4,8 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
-import favicon from "./favicon.png";
-import { Button } from "@/components/ui/button";
 import FooterIcon from "@/app/pink_logo.svg";
 import { Phone, Mail, MapPin } from "lucide-react";
 import Navbar from "@/components/navbar/Navbar";
