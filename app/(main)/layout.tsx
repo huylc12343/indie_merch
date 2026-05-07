@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 
 import Footer from "@/components/footer/Footer";
 import Navbar from "@/components/navbar/Navbar";
@@ -30,11 +30,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
-    </html>
+    <div className="min-h-full flex flex-col font-sans">
+      <Navbar />
+      {children}
+      <Footer />
+    </div>
   );
 }

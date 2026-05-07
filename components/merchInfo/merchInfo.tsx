@@ -13,7 +13,11 @@ interface MerchItem {
   id: number;
   name: string;
   price: number;
-  image: StaticImageData;
+  thumbImage: StaticImageData;
+  quantity?: number;
+  merchImages?: StaticImageData[];
+  colors?: string[];
+  sizes?: string[];
   variants?: Variant[];
   description?: string;
 }
@@ -21,8 +25,11 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <div className="merch-item" onClick={() => setOpen(true)}>
-        <Image src={item.image} alt="sample" width={630} height={630} />
+      <div
+        className="merch-item hover:cursor-pointer"
+        onClick={() => setOpen(true)}
+      >
+        <Image src={item.thumbImage} alt="sample" width={630} height={630} />
         <div className="merch-info pt-3 text-3xl">
           <span className="font-semibold">{item.name}</span>
           {" - "}
@@ -40,27 +47,27 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               <Button
                 variant="ghost"
                 onClick={() => setOpen(false)}
-                className="w-8 h-8 p-0 flex items-center justify-center"
+                className="w-8 h-8 p-0 flex items-center hover:cursor-pointer justify-center"
               >
-                <div className="w-5 h-5 flex items-center justify-center">
+                <div className="w-5 h-5 flex items-center  justify-center">
                   <X className="w-2.5 h-2.5" />
                 </div>
               </Button>
             </div>
             <div className="flex mx-8 mb-10 gap-6">
               <div className="flex flex-col max-w-[452px] mt-4">
-                <Image src={item.image} width={460} height={460} alt="" />
+                <Image src={item.thumbImage} width={460} height={460} alt="" />
 
                 <div className="flex mt-5 gap-3 overflow-x-auto">
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
-                  <Image src={item.image} width={120} height={120} alt="" />
+                  {item.merchImages?.map((img, index) => (
+                    <Image
+                      key={index}
+                      src={img}
+                      width={120}
+                      height={120}
+                      alt={`merch-image-${index}`}
+                    />
+                  ))}
                 </div>
               </div>
               <div className="flex-col max-w-[452px] min-w-[452px] ">
@@ -76,9 +83,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     {/* Button - */}
                     <Button
                       variant="outline"
-                      className="w-8 h-8 p-0 flex items-center rounded-none border-[#171717] justify-center"
+                      className="w-8 h-8 p-0 flex hover:cursor-pointer items-center rounded-none border-[#171717] justify-center"
                     >
-                      <Minus className="w-4 h-4 rounded-none" />
+                      <Minus className="w-4 h-4  rounded-none" />
                     </Button>
 
                     {/* Quantity */}
@@ -87,7 +94,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     {/* Button + */}
                     <Button
                       variant="outline"
-                      className="w-8 h-8 p-0 flex items-center rounded-none border-[#171717] justify-center"
+                      className="w-8 h-8 p-0 flex items-center rounded-none hover:cursor-pointer border-[#171717] justify-center"
                     >
                       <Plus className="w-4 h-4 rounded-none" />
                     </Button>
@@ -96,33 +103,37 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     <span className="text-sm text-gray-500 ml-2">Kho: 10</span>
                   </div>
                   <h3 className="mt-10 text-[#6C6C6C]">Phân loại</h3>
-                  <h3 className="mt-4">Màu sắc</h3>
-                  <div className="flex">
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      Trắng
-                    </Button>
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      Đen
-                    </Button>
-                  </div>
-                  <h3 className="mt-4">Kích thước</h3>
-                  <div className="flex">
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      S
-                    </Button>{" "}
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      M
-                    </Button>{" "}
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      L
-                    </Button>{" "}
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      XL
-                    </Button>{" "}
-                    <Button className="rounded-none bg-[#f5f5f5] text-[#333333]">
-                      XXL
-                    </Button>
-                  </div>
+                  {item.colors && (
+                    <>
+                      <h3 className="mt-4">Màu sắc</h3>
+                      <div className="flex">
+                        {item.colors.map((color, index) => (
+                          <Button
+                            key={index}
+                            className="rounded-none bg-[#f5f5f5] text-[#333333]"
+                          >
+                            {color}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {item.sizes && (
+                    <>
+                      <h3 className="mt-4">Kích thước</h3>
+                      <div className="flex">
+
+                        {item.sizes.map((size, index) => (
+                          <Button
+                            key={index}
+                            className="rounded-none bg-[#f5f5f5] hover:cursor-pointer text-[#333333]"
+                          >
+                            {size}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                   <h3 className="mt-10">Mô tả sản phẩm</h3>
                   <p className="mt-4 text-[#6C6C6C] mb-10">
                     {item.description}
@@ -131,12 +142,12 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                 <div className="flex gap-4 pt-4 mt-4">
                   <Button
                     variant="outline"
-                    className="h-14 rounded-none border-[#171717] px-5 text-2xl font-semibold"
+                    className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
                   >
                     Thêm vào giỏ hàng
                   </Button>
 
-                  <Button className="h-14 rounded-none px-5 text-2xl font-semibold">
+                  <Button className="h-14 hover:cursor-pointer rounded-none px-5 text-2xl font-semibold">
                     Mua ngay
                   </Button>
                 </div>

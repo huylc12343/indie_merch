@@ -4,22 +4,28 @@ import merchText from "./merch-text.svg";
 import Merch from "./MERCHANDISE.svg";
 import MerchInfo from "@/components/merchInfo/merchInfo";
 const merchData = [
-  {
+    {
     id: 1,
-    name: "khăn a",
+    name: "áo b",
     price: 367000,
-    image: sample,
-    description:
-      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.",
-  },
-  {
-    id: 2,
-    name: "khăn b",
-    price: 367000,
-    image: sample,
+    thumbImage: sample,
+    sizes: ["S", "M", "L", "XL"],
+    colors:["Đen","Trắng"],
+    merchImages: [sample, sample, sample,sample,sample],  
     description:
       "Kích thước: 70*70 cm \n \n Khăn lụa xanh đậm với họa tiết xoáy nước đặc trưng, chất vải mềm nhẹ, dễ sử dụng để quàng cổ, cột túi hoặc đơn giản là giữ làm kỷ niệm. Một món phụ kiện vừa đẹp vừa mang dấu ấn riêng.",
   },
+  {
+    id: 2,
+    name: "khăn a",
+    price: 367000,
+    thumbImage: sample,
+    colors: ["Đỏ", "Xanh", "Vàng"],
+    merchImages: [sample, sample, sample,sample],  
+    description:
+      "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.",
+  },
+
 ];
 export default function Home() {
   return (

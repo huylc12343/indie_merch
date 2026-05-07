@@ -3,13 +3,16 @@
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useState } from "react";
-import sample from "@/app/img_sample.png"
+import MerchCheckout from "../merchCheckout/MerchCheckout";
+import sample from "@/app/img_sample.png";
+import { useRouter } from "next/navigation";
+
 interface CartItem {
   id: number;
   name: string;
   price: number;
   image: any;
+  quantity: number;
 }
 
 const mockData: CartItem[] = [
@@ -18,12 +21,14 @@ const mockData: CartItem[] = [
     name: "Khăn gấp gấp",
     price: 179000,
     image: sample,
+    quantity: 1,
   },
   {
     id: 2,
     name: "Khăn tự do",
     price: 199000,
     image: sample,
+    quantity: 1,
   },
 ];
 
@@ -34,6 +39,14 @@ export default function CartSidebar({
   open: boolean;
   setOpen: (v: boolean) => void;
 }) {
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    localStorage.setItem("merch_cart", JSON.stringify(mockData));
+
+    router.push("/check-out");
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -52,9 +65,13 @@ export default function CartSidebar({
         <div className="flex flex-col h-full p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h2 >
-              <span className="font-retroguard text-[28px]">GIỎ HÀNG </span><span className="text-gray-400"> 02</span>
+            <h2>
+              <span className="font-retroguard text-[28px]">
+                GIỎ HÀNG
+              </span>
+              <span className="text-gray-400"> 02</span>
             </h2>
+
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <X />
             </Button>
@@ -64,28 +81,26 @@ export default function CartSidebar({
           <div className="flex-1 overflow-y-auto space-y-6">
             {mockData.map((item) => (
               <div key={item.id} className="flex gap-4">
-                {/* Checkbox */}
                 <input type="checkbox" defaultChecked />
 
-                {/* Image */}
                 <Image
                   src={item.image}
                   alt=""
                   width={120}
-                  height={120}                  
+                  height={120}
                 />
 
-                {/* Info */}
                 <div className="flex-1">
-                  <h4 className="font-medium text-sm">{item.name}</h4>
+                  <h4 className="font-medium text-sm">
+                    {item.name}
+                  </h4>
+
                   <p className="text-[var(--color-primary-pink)] font-bold">
                     {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                   </p>
 
                   <div className="flex items-center justify-between gap-4 py-2 rounded-md w-full">
-                    {/* Left */}
                     <div className="flex items-center">
-                      {/* Minus */}
                       <Button
                         variant="outline"
                         className="h-8 w-8 rounded-none border-[#171717] p-0"
@@ -93,12 +108,10 @@ export default function CartSidebar({
                         <Minus className="h-4 w-4" />
                       </Button>
 
-                      {/* Quantity */}
                       <span className="flex h-8 w-8 items-center justify-center text-sm">
-                        1
+                        {item.quantity}
                       </span>
 
-                      {/* Plus */}
                       <Button
                         variant="outline"
                         className="h-8 w-8 rounded-none border-[#171717] p-0"
@@ -107,7 +120,6 @@ export default function CartSidebar({
                       </Button>
                     </div>
 
-                    {/* Delete */}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -125,19 +137,29 @@ export default function CartSidebar({
           <div className="border-t pt-4">
             <div className="flex justify-between items-center mb-4 text-sm">
               <span>
-                <input type="checkbox" defaultChecked className="mr-2 text-[16px] leading-6 " />
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="mr-2 text-[16px] leading-6 "
+                />
                 Tất cả
               </span>
+
               <span className="text-[var(--color-primary-pink)] font-bold text-[28px] leading-[34px]">
                 378.000 đ
               </span>
             </div>
 
-            <Button className="w-full h-14 rounded-none bg-black text-white hover:bg-black/80">
+            <Button
+              onClick={handleCheckout}
+              className="w-full h-14 rounded-none bg-black text-white hover:bg-black/80"
+            >
               THANH TOÁN
             </Button>
           </div>
         </div>
+
+        <MerchCheckout />
       </div>
     </>
   );

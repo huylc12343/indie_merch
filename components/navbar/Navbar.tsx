@@ -6,7 +6,7 @@ import favicon from "@/app/favicon.png";
 import CartSidebar from "@/components/cartSidebar/CartSidebar";
 import { useState } from "react";
 export default function Navbar() {
-    const [openCart, setOpenCart] = useState(false);
+  const [openCart, setOpenCart] = useState(false);
   return (
     <nav className="flex flex-row items-center justify-between p-6 bg-white text-black">
       <div className="nav-item">
@@ -17,10 +17,9 @@ export default function Navbar() {
       <div className="nav-item">
         <div className="nav-item">
           <Button
-            
-            className="px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 tracking-normal hover:bg-black/80  rounded-none h-auto"
+            className="px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 tracking-normal hover:bg-black/80 hover:cursor-pointer rounded-none h-auto"
             style={{ fontFamily: "sans-serif" }}
-            onClick={()=>setOpenCart(true)}
+            onClick={() => setOpenCart(true)}
           >
             GIỎ HÀNG
           </Button>
