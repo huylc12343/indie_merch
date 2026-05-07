@@ -3,7 +3,9 @@
 import { BookingStepper } from "@/components/bookingStepper/booking-stepper";
 import { useEffect, useState } from "react";
 import MerchBookingForm from "@/components/merchBookingForm/MerchBookingForm";
+import { BookingPaymentInfo } from "@/components/bookingPaymentInfo/booking-payment-info";
 import TicketSummaryAside from "@/components/merchBookingAside/ticket-summary-aside";
+import { BookingSuccessInfo } from "@/components/bookingSuccessInfo/booking-success-info";
 interface CartItem {
   id: number;
   name: string;
@@ -14,6 +16,7 @@ interface CartItem {
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     const data = localStorage.getItem("merch_cart");
@@ -33,7 +36,7 @@ export default function CheckoutPage() {
           </p>
 
           <BookingStepper
-            currentStep={1}
+            currentStep={currentStep}
             steps={["Thông tin chung", "Thanh toán", "Xác nhận đơn hàng"]}
           />
         </div>
@@ -42,8 +45,31 @@ export default function CheckoutPage() {
       <section className="px-30">
         <div className="relative z-10 -mt-[80px]">
           <div className="flex flex-1 flex-row gap-5">
-            <MerchBookingForm />
-            <TicketSummaryAside />
+            {currentStep === 1 ? (
+              <MerchBookingForm />
+            ) : currentStep === 2 ? (
+              <BookingPaymentInfo
+                fullName="huy"
+                phone="0987654321"
+                email="hudhasd"
+                address="259 btxt"
+              />
+            ) : (
+              <BookingSuccessInfo email="hudhasd" />
+            )}
+            <TicketSummaryAside
+              onActionClick={
+                currentStep === 1
+                  ? () => {
+                      setCurrentStep(2);
+                    }
+                  : currentStep === 2
+                    ? () => {
+                        setCurrentStep(3);
+                      }
+                    : undefined
+              }
+            />
           </div>
         </div>
       </section>

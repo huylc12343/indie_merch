@@ -5,7 +5,6 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 
-
 import sample from "@/app/img_sample.png";
 
 const cartItems = [
@@ -26,11 +25,16 @@ const cartItems = [
     variant: "Đen, XL",
   },
 ];
-
-export default function TicketSummaryAside() {
+type TicketSummaryAsideProps = {
+  title?: string;
+  onActionClick?: () => void;
+};
+export default function TicketSummaryAside({
+  onActionClick,
+}: TicketSummaryAsideProps) {
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
-    0
+    0,
   );
 
   return (
@@ -59,13 +63,9 @@ export default function TicketSummaryAside() {
                 />
 
                 <div className="flex flex-col">
-                  <p className="text-sm font-medium leading-5">
-                    {item.name}
-                  </p>
+                  <p className="text-sm font-medium leading-5">{item.name}</p>
 
-                  <p className="mt-1 text-sm">
-                    {item.price}
-                  </p>
+                  <p className="mt-1 text-sm">{item.price}</p>
 
                   <div className="mt-1 w-fit bg-[#ECECEC] px-2 py-1 text-xs text-[#6C6C6C]">
                     {item.variant}
@@ -79,9 +79,7 @@ export default function TicketSummaryAside() {
                   {item.quantity.toString().padStart(2, "0")}
                 </p>
 
-                <p className="mt-1 text-sm">
-                  {item.price * item.quantity}
-                </p>
+                <p className="mt-1 text-sm">{item.price * item.quantity}</p>
               </div>
             </div>
 
@@ -94,14 +92,13 @@ export default function TicketSummaryAside() {
       <div className="mt-5 flex items-center justify-between text-base font-bold">
         <p>Tạm tính</p>
 
-        <p className="text-[#FF017E]">
-          {subtotal}
-        </p>
+        <p className="text-[#FF017E]">{subtotal}</p>
       </div>
 
       {/* Button */}
       <Button
         type="button"
+        onClick={onActionClick}
         className="mt-5 h-14 w-full rounded-none bg-[#FF017E] text-base font-semibold text-white hover:bg-[#ff2f94]"
       >
         TIẾP TỤC
