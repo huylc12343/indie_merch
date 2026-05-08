@@ -4,15 +4,30 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { StaticImageData } from "next/image";
 import { X, Minus, Plus } from "lucide-react";
-const getImageUrl = (id: string) => {
-  if (id.startsWith("/")) return id;
-
-  return `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${id}`;
-};
+// Sửa interface
 interface MerchImage {
-  directus_files_id: string;
+  directus_files_id: {
+    id: string;
+  };
 }
 
+interface MerchItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity?: number;
+  merch_images?: MerchImage[]; // đổi từ merchimages → merch_images
+  colors?: string[];
+  sizes?: string[];
+  types?: string[];
+  description?: string;
+  status?: string;
+}
+
+// Sửa getImageUrl
+const getImageUrl = (id: string) => {
+  return `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${id}`;
+};
 interface CartItem {
   cartKey: string;
 
@@ -91,7 +106,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
 
       quantity,
 
-      image: getImageUrl(item.merchimages?.[0]?.directus_files_id || ""),
+      image: getImageUrl(item.merch_images?.[0]?.directus_files_id.id || ""),
 
       selectedColor,
 
@@ -123,7 +138,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
         onClick={() => setOpen(true)}
       >
         <Image
-          src={getImageUrl(item.merchimages?.[0]?.directus_files_id || "")}
+          src={getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "")}
           alt={item.name}
           width={630}
           height={630}
@@ -156,17 +171,17 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               <div className="flex flex-col max-w-[452px] mt-4">
                 <Image
                   src={getImageUrl(
-                    item.merchimages?.[0]?.directus_files_id || "",
+                    item.merch_images?.[0]?.directus_files_id.id || "",
                   )}
                   width={460}
                   height={460}
                   alt={item.name}
                 />
                 <div className="flex mt-5 gap-3 overflow-x-auto">
-                  {item.merchimages?.map((img, index) => (
+                  {item.merch_images?.map((img, index) => (
                     <Image
                       key={index}
-                      src={getImageUrl(img.directus_files_id)}
+                      src={getImageUrl(img.directus_files_id.id)}
                       width={120}
                       height={120}
                       alt={`merch-image-${index}`}
