@@ -14,9 +14,7 @@ export async function fetchMerch() {
         "sizes",
         "types",
         "status",
-        {
-          "merchimages": ["directus_files_id"],
-        },
+        "merchimages",
       ],
     }),
   );
