@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <div className="min-h-full flex flex-col font-sans">
       <Navbar />
-      {children}
+      <div className="mt-[114px]">{children}</div>
       <Footer />
     </div>
   );

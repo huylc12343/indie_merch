@@ -7,11 +7,15 @@ import { BookingPaymentInfo } from "@/components/bookingPaymentInfo/booking-paym
 import TicketSummaryAside from "@/components/merchBookingAside/ticket-summary-aside";
 import { BookingSuccessInfo } from "@/components/bookingSuccessInfo/booking-success-info";
 interface CartItem {
-  id: number;
+  cartKey: string;
+  id: string;
   name: string;
   price: number;
-  image: any;
+  image: string;
   quantity: number;
+  selectedColor?: string | null;
+  selectedSize?: string | null;
+  selectedType?: string | null;
 }
 
 export default function CheckoutPage() {
@@ -19,7 +23,7 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
-    const data = localStorage.getItem("merch_cart");
+    const data = localStorage.getItem("cart");
 
     if (data) {
       setCartItems(JSON.parse(data));
@@ -58,6 +62,7 @@ export default function CheckoutPage() {
               <BookingSuccessInfo email="hudhasd" />
             )}
             <TicketSummaryAside
+            cartItems={cartItems}
               onActionClick={
                 currentStep === 1
                   ? () => {

@@ -7,30 +7,25 @@ import { Button } from "@/components/ui/button";
 
 import sample from "@/app/img_sample.png";
 
-const cartItems = [
-  {
-    id: 1,
-    name: "Khăn gấp gấp",
-    quantity: 1,
-    price: 179000,
-    image: sample,
-    variant: "Trắng, L",
-  },
-  {
-    id: 2,
-    name: "Khăn tự do",
-    quantity: 1,
-    price: 199000,
-    image: sample,
-    variant: "Đen, XL",
-  },
-];
+
+interface CartItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  image: string;
+  selectedColor?: string | null;
+  selectedSize?: string | null;
+  selectedType?: string | null;
+}
 type TicketSummaryAsideProps = {
   title?: string;
   onActionClick?: () => void;
+  cartItems: CartItem[];
 };
 export default function TicketSummaryAside({
   onActionClick,
+  cartItems,
 }: TicketSummaryAsideProps) {
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -68,7 +63,7 @@ export default function TicketSummaryAside({
                   <p className="mt-1 text-sm">{item.price}</p>
 
                   <div className="mt-1 w-fit bg-[#ECECEC] px-2 py-1 text-xs text-[#6C6C6C]">
-                    {item.variant}
+                    {/* {item.selectedColor && <span>{item.selectedColor}</span>} */}
                   </div>
                 </div>
               </div>

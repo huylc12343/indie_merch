@@ -2,15 +2,11 @@ import type { ReactNode } from "react";
 import CheckOutNavbar from "@/components/navbar/CheckOutNavbar";
 import Footer from "@/components/footer/Footer";
 
-export default function Layout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div>
+    <div className="bg-[#333333]">
       <CheckOutNavbar />
-      {children}
+      <div className="mt-[114px]">{children}</div>
       <Footer />
     </div>
   );

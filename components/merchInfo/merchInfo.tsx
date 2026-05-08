@@ -4,32 +4,130 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { StaticImageData } from "next/image";
 import { X, Minus, Plus } from "lucide-react";
-interface Variant {
-  type?: string;
-  color?: string;
-  size?: string;
+const getImageUrl = (id: string) => {
+  if (id.startsWith("/")) return id;
+
+  return `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${id}`;
+};
+interface MerchImage {
+  directus_files_id: string;
+}
+
+interface CartItem {
+  cartKey: string;
+
+  id: string;
+
+  name: string;
+
+  price: number;
+
+  quantity: number;
+
+  image: string;
+
+  selectedColor?: string | null;
+
+  selectedSize?: string | null;
+
+  selectedType?: string | null;
 }
 interface MerchItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
-  thumbImage: StaticImageData;
+
   quantity?: number;
-  merchImages?: StaticImageData[];
+
+  merchimages?: MerchImage[];
+
   colors?: string[];
+
   sizes?: string[];
-  variants?: Variant[];
+
+  types?: string[];
+
   description?: string;
+
+  status?: string;
 }
+
 export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    item.colors?.[0] || null,
+  );
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    item.sizes?.[0] || null,
+  );
+  const [selectedType, setSelecteType] = useState<string | null>(
+    item.types?.[0] || null,
+  );
+  const [quantity, setQuantity] = useState(1);
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+  };
+
+  const handleSizeSelected = (size: string) => {
+    setSelectedSize(size);
+  };
+  const handleTypeSelect = (type: string) => {
+    setSelecteType(type);
+  };
+  const handleAddToCart = () => {
+    const cartKey = [item.id, selectedColor, selectedSize, selectedType].join(
+      "-",
+    );
+
+    const newItem: CartItem = {
+      cartKey,
+
+      id: item.id,
+
+      name: item.name,
+
+      price: item.price,
+
+      quantity,
+
+      image: getImageUrl(item.merchimages?.[0]?.directus_files_id || ""),
+
+      selectedColor,
+
+      selectedSize,
+
+      selectedType,
+    };
+
+    const existingCart = localStorage.getItem("cart");
+
+    const cart: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
+
+    const existingItemIndex = cart.findIndex((i) => i.cartKey === cartKey);
+
+    if (existingItemIndex !== -1) {
+      cart[existingItemIndex].quantity += quantity;
+    } else {
+      cart.push(newItem);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    console.log("Added to cart", cart);
+  };
   return (
     <>
       <div
         className="merch-item hover:cursor-pointer"
         onClick={() => setOpen(true)}
       >
-        <Image src={item.thumbImage} alt="sample" width={630} height={630} />
+        <Image
+          src={getImageUrl(item.merchimages?.[0]?.directus_files_id || "")}
+          alt={item.name}
+          width={630}
+          height={630}
+        />
         <div className="merch-info pt-3 text-3xl">
           <span className="font-semibold">{item.name}</span>
           {" - "}
@@ -56,13 +154,19 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
             </div>
             <div className="flex mx-8 mb-10 gap-6">
               <div className="flex flex-col max-w-[452px] mt-4">
-                <Image src={item.thumbImage} width={460} height={460} alt="" />
-
+                <Image
+                  src={getImageUrl(
+                    item.merchimages?.[0]?.directus_files_id || "",
+                  )}
+                  width={460}
+                  height={460}
+                  alt={item.name}
+                />
                 <div className="flex mt-5 gap-3 overflow-x-auto">
-                  {item.merchImages?.map((img, index) => (
+                  {item.merchimages?.map((img, index) => (
                     <Image
                       key={index}
-                      src={img}
+                      src={getImageUrl(img.directus_files_id)}
                       width={120}
                       height={120}
                       alt={`merch-image-${index}`}
@@ -83,54 +187,90 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                     {/* Button - */}
                     <Button
                       variant="outline"
+                      onClick={() =>
+                        setQuantity((prev) => Math.max(1, prev - 1))
+                      }
                       className="w-8 h-8 p-0 flex hover:cursor-pointer items-center rounded-none border-[#171717] justify-center"
                     >
                       <Minus className="w-4 h-4  rounded-none" />
                     </Button>
 
                     {/* Quantity */}
-                    <span className="w-8 text-center">1</span>
+                    <span className="w-8 text-center">{quantity}</span>
 
                     {/* Button + */}
                     <Button
                       variant="outline"
+                      onClick={() =>
+                        setQuantity((prev) =>
+                          Math.min(item.quantity || 1, prev + 1),
+                        )
+                      }
                       className="w-8 h-8 p-0 flex items-center rounded-none hover:cursor-pointer border-[#171717] justify-center"
                     >
                       <Plus className="w-4 h-4 rounded-none" />
                     </Button>
 
                     {/* Stock */}
-                    <span className="text-sm text-gray-500 ml-2">Kho: 10</span>
+                    <span className="text-sm text-gray-500 ml-2">
+                      Kho: {item.quantity}
+                    </span>
                   </div>
                   <h3 className="mt-10 text-[#6C6C6C]">Phân loại</h3>
-                  {item.colors && (
+                  {item.types && item.types.length > 0 && (
                     <>
-                      <h3 className="mt-4">Màu sắc</h3>
+                      <h3 className="mt-4">Loại</h3>
                       <div className="flex">
-                        {item.colors.map((color, index) => (
-                          <Button
-                            key={index}
-                            className="rounded-none bg-[#f5f5f5] text-[#333333]"
-                          >
-                            {color}
-                          </Button>
-                        ))}
+                        {item.types.map((type, index) => {
+                          const isSelected = selectedType === type;
+                          return (
+                            <Button
+                              key={index}
+                              onClick={() => handleTypeSelect(type)}
+                              className={`rounded-none border bg-[#f5f5f5] text-[#333333] ${isSelected ? "border-[#171717]" : "border-transparent"}`}
+                            >
+                              {type}
+                            </Button>
+                          );
+                        })}
                       </div>
                     </>
                   )}
-                  {item.sizes && (
+                  {item.colors && item.colors.length > 0 && (
+                    <>
+                      <h3 className="mt-4">Màu sắc</h3>
+                      <div className="flex">
+                        {item.colors.map((color, index) => {
+                          const isSelected = selectedColor === color;
+                          return (
+                            <Button
+                              key={index}
+                              onClick={() => handleColorSelect(color)}
+                              className={`rounded-none border bg-[#f5f5f5] text-[#333333] ${isSelected ? "border-[#171717]" : "border-transparent"}`}
+                            >
+                              {color}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {item.sizes && item.sizes.length > 0 && (
                     <>
                       <h3 className="mt-4">Kích thước</h3>
                       <div className="flex">
-
-                        {item.sizes.map((size, index) => (
-                          <Button
-                            key={index}
-                            className="rounded-none bg-[#f5f5f5] hover:cursor-pointer text-[#333333]"
-                          >
-                            {size}
-                          </Button>
-                        ))}
+                        {item.sizes.map((size, index) => {
+                          const isSelected = selectedSize === size;
+                          return (
+                            <Button
+                              key={index}
+                              onClick={() => handleSizeSelected(size)}
+                              className={`rounded-none border bg-[#f5f5f5] text-[#333333] ${isSelected ? "border-[#171717]" : "border-transparent"}`}
+                            >
+                              {size}
+                            </Button>
+                          );
+                        })}
                       </div>
                     </>
                   )}
@@ -142,6 +282,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                 <div className="flex gap-4 pt-4 mt-4">
                   <Button
                     variant="outline"
+                    onClick={handleAddToCart}
                     className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
                   >
                     Thêm vào giỏ hàng
