@@ -47,25 +47,6 @@ interface CartItem {
 
   selectedType?: string | null;
 }
-interface MerchItem {
-  id: string;
-  name: string;
-  price: number;
-
-  quantity?: number;
-
-  merchimages?: MerchImage[];
-
-  colors?: string[];
-
-  sizes?: string[];
-
-  types?: string[];
-
-  description?: string;
-
-  status?: string;
-}
 
 export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);
