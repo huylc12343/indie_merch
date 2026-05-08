@@ -2,6 +2,7 @@ import sample from "@/app/img_sample.png";
 import { fetchMerch } from "@/lib/fetchMerch";
 import MerchInfo from "@/components/merchInfo/merchInfo";
 const merchData = await fetchMerch();
+export const dynamic = "force-dynamic";
 
 // const merchData = [
 //   {
