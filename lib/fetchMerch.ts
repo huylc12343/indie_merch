@@ -1,6 +1,6 @@
 import { readItems } from "@directus/sdk";
 import { directus } from "./directus";
-import {MerchItem }from "../lib/types";
+import { MerchItem } from "../lib/types";
 export async function fetchMerch(): Promise<MerchItem[]> {
   const data = await directus.request(
     readItems("merch" as any, {

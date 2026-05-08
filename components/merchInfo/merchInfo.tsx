@@ -7,10 +7,12 @@ import { X, Minus, Plus } from "lucide-react";
 import { MerchItem } from "@/lib/types";
 import { CartItem } from "@/lib/types";
 const getImageUrl = (id: string) => {
+  if (!id) {
+    console.warn("Missing image id");
+    return "";
+  }
   return `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${id}`;
 };
-
-
 export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(
@@ -50,7 +52,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
 
       quantity,
 
-      image: getImageUrl(item.merch_images?.[0]?.directus_files_id.id || ""),
+      image: getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png"),
 
       selectedColor,
 
@@ -82,7 +84,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
         onClick={() => setOpen(true)}
       >
         <Image
-          src={getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "")}
+          src={getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "/placeholder.png")}
           alt={item.name}
           width={630}
           height={630}
@@ -115,7 +117,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               <div className="flex flex-col max-w-[452px] mt-4">
                 <Image
                   src={getImageUrl(
-                    item.merch_images?.[0]?.directus_files_id.id || "",
+                    item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png",
                   )}
                   width={460}
                   height={460}
