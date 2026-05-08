@@ -1,13 +1,12 @@
 import { readItems } from "@directus/sdk";
 import { directus } from "./directus";
-
-export async function fetchMerch() {
+import {MerchItem }from "../lib/types";
+export async function fetchMerch(): Promise<MerchItem[]> {
   const data = await directus.request(
-    readItems("merch", {
-      fields: ["*", "merch_images.directus_files_id.*"],
+    readItems("merch" as any, {
+      fields: ["*", "merch_images.directus_files_id.*"] as any,
     }),
   );
 
-  console.log(JSON.stringify(data, null, 2));
-  return data;
+  return data as unknown as MerchItem[];
 }
