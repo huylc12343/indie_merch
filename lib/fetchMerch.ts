@@ -7,7 +7,7 @@ export async function fetchMerch(): Promise<MerchItem[]> {
 
   const res = await fetch(
     `${baseUrl}/items/merch?fields=*,merch_images.directus_files_id.*`,
-    { cache: "no-store" }
+    { cache: "no-store" },
   );
 
   if (!res.ok) {
@@ -15,6 +15,7 @@ export async function fetchMerch(): Promise<MerchItem[]> {
   }
 
   const json = await res.json();
-
+  console.log("FETCH:", baseUrl.toString());
+  console.log("STATUS:", res.status);
   return json.data as MerchItem[];
 }
