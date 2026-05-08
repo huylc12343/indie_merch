@@ -14,7 +14,6 @@ export async function fetchMerch() {
         "sizes",
         "types",
         "status",
-        "merchimages",
       ],
     }),
   );
