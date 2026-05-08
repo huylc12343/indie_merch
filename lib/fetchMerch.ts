@@ -1,6 +1,5 @@
-import { readItems } from "@directus/sdk";
-import { directus } from "./directus";
 import { MerchItem } from "../lib/types";
+
 export async function fetchMerch(): Promise<MerchItem[]> {
   const baseUrl =
     process.env.DIRECTUS_URL || process.env.NEXT_PUBLIC_DIRECTUS_URL;
@@ -14,7 +13,6 @@ export async function fetchMerch(): Promise<MerchItem[]> {
   url.searchParams.append("fields[]", "merch_images.directus_files_id.*");
 
   const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}` },
     cache: "no-store",
   });
 
