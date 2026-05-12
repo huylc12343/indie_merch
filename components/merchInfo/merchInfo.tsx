@@ -26,6 +26,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
   );
   const [quantity, setQuantity] = useState(1);
 
+  const [selectedImageId, setSelectedImageId] = useState<string | undefined>(
+    item.merch_images?.[0]?.directus_files_id?.id,
+  );
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
   };
@@ -52,13 +55,18 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
 
       quantity,
 
-      image: getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png"),
+      image: getImageUrl(
+        item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png",
+      ),
 
       selectedColor,
 
       selectedSize,
 
       selectedType,
+      availableColors: item.colors,
+      availableSizes: item.sizes,
+      availableTypes: item.types,
     };
 
     const existingCart = localStorage.getItem("cart");
@@ -84,7 +92,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
         onClick={() => setOpen(true)}
       >
         <Image
-          src={getImageUrl(item.merch_images?.[0]?.directus_files_id.id || "/placeholder.png")}
+          src={getImageUrl(
+            item.merch_images?.[0]?.directus_files_id.id || "/placeholder.png",
+          )}
           alt={item.name}
           width={630}
           height={630}
@@ -116,23 +126,31 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
             <div className="flex mx-8 mb-10 gap-6">
               <div className="flex flex-col max-w-[452px] mt-4">
                 <Image
-                  src={getImageUrl(
-                    item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png",
-                  )}
+                  src={getImageUrl(selectedImageId || "./")}
                   width={460}
                   height={460}
                   alt={item.name}
                 />
                 <div className="flex mt-5 gap-3 overflow-x-auto">
-                  {item.merch_images?.map((img, index) => (
-                    <Image
-                      key={index}
-                      src={getImageUrl(img.directus_files_id.id)}
-                      width={120}
-                      height={120}
-                      alt={`merch-image-${index}`}
-                    />
-                  ))}
+                  {item.merch_images?.map((img, index) => {
+                    const imgId = img.directus_files_id.id;
+
+                    return (
+                      <Image
+                        key={index}
+                        src={getImageUrl(imgId)}
+                        width={120}
+                        height={120}
+                        alt={`merch-image-${index}`}
+                        className={`cursor-pointer border-2 ${
+                          selectedImageId === imgId
+                            ? "border-[var(--color-primary-pink)]"
+                            : "border-transparent"
+                        }`}
+                        onClick={() => setSelectedImageId(imgId)}
+                      />
+                    );
+                  })}
                 </div>
               </div>
               <div className="flex-col max-w-[452px] min-w-[452px] ">
@@ -142,7 +160,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                   </span>
                   <h1 className="text-5xl leading-13 font-bold text-[var(--color-primary-pink)] mt-4">
                     {" "}
-                    {new Intl.NumberFormat("vi-VN").format(item.price)} đ
+                    {new Intl.NumberFormat("vi-VN").format(item.price)} đ 
                   </h1>
                   <div className="flex items-center gap-4 py-2 rounded-md w-fit">
                     {/* Button - */}

@@ -2,33 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { X, Minus, Plus, Trash2 } from "lucide-react";
+import { X, Minus, Plus, Trash2, ChevronDown, Box, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 import Image from "next/image";
 
 import { useRouter } from "next/navigation";
-
-interface CartItem {
-  cartKey: string;
-
-  id: string;
-
-  name: string;
-
-  price: number;
-
-  image: string;
-
-  quantity: number;
-
-  selectedColor?: string | null;
-
-  selectedSize?: string | null;
-
-  selectedType?: string | null;
-}
+import { CartItem } from "@/lib/types";
 
 export default function CartSidebar({
   open,
@@ -40,13 +21,24 @@ export default function CartSidebar({
   const router = useRouter();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
+  const [openVariant, setOpenVariant] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   // load cart
   useEffect(() => {
+    if (!open) return;
+
     const cart = localStorage.getItem("cart");
 
     if (cart) {
-      setCartItems(JSON.parse(cart));
+      const parsedCart: CartItem[] = JSON.parse(cart);
+
+      setCartItems(parsedCart);
+
+      // auto check all
+      setSelectedItems(parsedCart.map((item) => item.cartKey));
+    } else {
+      setCartItems([]);
+      setSelectedItems([]);
     }
   }, [open]);
 
@@ -92,25 +84,83 @@ export default function CartSidebar({
     const updated = cartItems.filter((item) => item.cartKey !== cartKey);
 
     saveCart(updated);
-  };
 
+    setSelectedItems((prev) => prev.filter((i) => i !== cartKey));
+  };
+  const updateVariant = (
+    cartKey: string,
+    field: "selectedColor" | "selectedSize" | "selectedType",
+    value: string,
+  ) => {
+    const currentIndex = cartItems.findIndex((i) => i.cartKey === cartKey);
+
+    if (currentIndex === -1) return;
+
+    const currentItem = cartItems[currentIndex];
+
+    const updatedItem = {
+      ...currentItem,
+      [field]: value,
+    };
+
+    // regenerate cartKey
+    const newCartKey = [
+      updatedItem.id,
+      updatedItem.selectedColor,
+      updatedItem.selectedSize,
+      updatedItem.selectedType,
+    ].join("-");
+
+    updatedItem.cartKey = newCartKey;
+
+    // check existing same variant
+    const existingIndex = cartItems.findIndex(
+      (i) => i.cartKey === newCartKey && i.cartKey !== cartKey,
+    );
+
+    const updatedCart = [...cartItems];
+
+    // nếu variant đã tồn tại -> merge quantity
+    if (existingIndex !== -1) {
+      updatedCart[existingIndex].quantity += updatedItem.quantity;
+
+      updatedCart.splice(currentIndex, 1);
+    } else {
+      // giữ nguyên vị trí item
+      updatedCart[currentIndex] = updatedItem;
+    }
+
+    saveCart(updatedCart);
+
+    setOpenVariant(null);
+  };
+  const toggleSelectItem = (cartKey: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(cartKey)
+        ? prev.filter((i) => i !== cartKey)
+        : [...prev, cartKey],
+    );
+  };
   // total
   const totalPrice = useMemo(() => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0,
-    );
-  }, [cartItems]);
+    return cartItems
+      .filter((item) => selectedItems.includes(item.cartKey))
+      .reduce((total, item) => total + item.price * item.quantity, 0);
+  }, [cartItems, selectedItems]);
 
   // checkout
   const handleCheckout = () => {
-    if (cartItems.length === 0) return;
+    const selectedCartItems = cartItems.filter((item) =>
+      selectedItems.includes(item.cartKey),
+    );
 
-    localStorage.setItem("checkout_items", JSON.stringify(cartItems));
+    // không có sản phẩm được chọn
+    if (selectedCartItems.length === 0) return;
+
+    localStorage.setItem("checkout_items", JSON.stringify(selectedCartItems));
 
     router.push("/check-out");
   };
-
   return (
     <>
       {/* Overlay */}
@@ -123,10 +173,10 @@ export default function CartSidebar({
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-[420px] bg-white z-50 transition-transform duration-300
+        className={`fixed top-0 right-0 h-full w-[500px] bg-white z-50 transition-transform duration-300
         ${open ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex flex-col h-full p-6">
+        <div className="flex flex-col h-full p-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2>
@@ -152,7 +202,20 @@ export default function CartSidebar({
             )}
 
             {cartItems.map((item) => (
-              <div key={item.cartKey} className="flex gap-4">
+              <div key={item.cartKey} className="flex gap-4 items-center">
+                <button
+                  onClick={() => toggleSelectItem(item.cartKey)}
+                  className={`w-5 h-5 border flex items-center justify-center transition-all rounded-sm
+    ${
+      selectedItems.includes(item.cartKey)
+        ? "bg-black border-black"
+        : "border-gray-400 bg-white"
+    }`}
+                >
+                  {selectedItems.includes(item.cartKey) && (
+                    <Check className="w-3 h-3 text-white" />
+                  )}
+                </button>
                 <Image
                   src={item.image}
                   alt={item.name}
@@ -162,21 +225,133 @@ export default function CartSidebar({
                 />
 
                 <div className="flex-1">
-                  <h4 className="font-medium text-sm">{item.name}</h4>
+                  <h4 className="font-medium text-2xl">{item.name}</h4>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-[var(--color-primary-pink)] text-3xl font-normal ">
+                      {new Intl.NumberFormat("vi-VN").format(item.price)} đ
+                    </p>
+                    {/* variants */}
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setOpenVariant(
+                            openVariant === item.cartKey ? null : item.cartKey,
+                          )
+                        }
+                        className="border px-2 py-1 text-xs"
+                      >
+                        {[
+                          item.selectedColor,
+                          item.selectedSize,
+                          item.selectedType,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                        <ChevronDown size={12} className="inline-block ml-1" />
+                      </button>
 
-                  {/* variants */}
-                  <div className="text-xs text-gray-500 mt-1">
-                    {item.selectedColor && <span>{item.selectedColor}</span>}
+                      {openVariant === item.cartKey && (
+                        <div className="absolute right-0 z-50 mt-2 w-[345px] border  bg-white shadow-lg p-3">
+                          <h1>Phân loại</h1>
+                          {/* COLORS */}
+                          {item.availableColors &&
+                            item.availableColors.length > 0 && (
+                              <div className="mb-3">
+                                <div className="mb-1 text-xs font-semibold">
+                                  Màu sắc
+                                </div>
 
-                    {item.selectedSize && <span> - {item.selectedSize}</span>}
+                                <div className="flex flex-wrap gap-2">
+                                  {item.availableColors.map((color) => (
+                                    <button
+                                      key={color}
+                                      onClick={() =>
+                                        updateVariant(
+                                          item.cartKey,
+                                          "selectedColor",
+                                          color,
+                                        )
+                                      }
+                                      className={`border px-2 py-1 text-xs ${
+                                        item.selectedColor === color
+                                          ? "border-black"
+                                          : "border-gray-200"
+                                      }`}
+                                    >
+                                      {color}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                    {item.selectedType && <span> - {item.selectedType}</span>}
+                          {/* SIZES */}
+                          {item.availableSizes &&
+                            item.availableSizes.length > 0 && (
+                              <div className="mb-3">
+                                <div className="mb-1 text-xs font-semibold">
+                                  Kích thước
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                  {item.availableSizes.map((size) => (
+                                    <button
+                                      key={size}
+                                      onClick={() =>
+                                        updateVariant(
+                                          item.cartKey,
+                                          "selectedSize",
+                                          size,
+                                        )
+                                      }
+                                      className={`border px-2 py-1 text-xs ${
+                                        item.selectedSize === size
+                                          ? "border-black"
+                                          : "border-gray-200"
+                                      }`}
+                                    >
+                                      {size}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                          {/* TYPES */}
+                          {item.availableTypes &&
+                            item.availableTypes.length > 0 && (
+                              <div>
+                                <div className="mb-1 text-xs font-semibold">
+                                  Loại
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                  {item.availableTypes.map((type) => (
+                                    <button
+                                      key={type}
+                                      onClick={() =>
+                                        updateVariant(
+                                          item.cartKey,
+                                          "selectedType",
+                                          type,
+                                        )
+                                      }
+                                      className={`border px-2 py-1 text-xs ${
+                                        item.selectedType === type
+                                          ? "border-black"
+                                          : "border-gray-200"
+                                      }`}
+                                    >
+                                      {type}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  <p className="text-[var(--color-primary-pink)] font-bold mt-2">
-                    {new Intl.NumberFormat("vi-VN").format(item.price)} đ
-                  </p>
-
                   <div className="flex items-center justify-between gap-4 py-2 rounded-md w-full">
                     {/* quantity */}
                     <div className="flex items-center">
@@ -219,7 +394,35 @@ export default function CartSidebar({
           {/* Footer */}
           <div className="border-t pt-4">
             <div className="flex justify-between items-center mb-4 text-sm">
-              <span>Tổng cộng</span>
+              <span className="flex items-center">
+                <button
+                  onClick={() => {
+                    if (selectedItems.length === cartItems.length) {
+                      setSelectedItems([]);
+                    } else {
+                      setSelectedItems(cartItems.map((i) => i.cartKey));
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <div
+                    className={`w-5 h-5 border flex items-center justify-center rounded-sm
+                    ${
+                      selectedItems.length === cartItems.length &&
+                      cartItems.length > 0
+                        ? "bg-black border-black"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {selectedItems.length === cartItems.length &&
+                      cartItems.length > 0 && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                  </div>
+
+                  <span>Tất cả</span>
+                </button>
+              </span>
 
               <span className="text-[var(--color-primary-pink)] font-bold text-[28px] leading-[34px]">
                 {new Intl.NumberFormat("vi-VN").format(totalPrice)} đ
@@ -228,7 +431,7 @@ export default function CartSidebar({
 
             <Button
               onClick={handleCheckout}
-              disabled={cartItems.length === 0}
+              disabled={selectedItems.length === 0}
               className="w-full h-14 rounded-none bg-black text-white hover:bg-black/80"
             >
               THANH TOÁN

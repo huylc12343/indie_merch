@@ -3,7 +3,7 @@ type BookingPaymentInfoProps = {
   phone: string;
   email: string;
   address: string;
-  // onEdit: () => void;
+  onEdit: () => void;
 };
 
 export function BookingPaymentInfo({
@@ -11,7 +11,7 @@ export function BookingPaymentInfo({
   phone,
   email,
   address,
-  // onEdit,
+  onEdit,
 }: BookingPaymentInfoProps) {
   return (
     <div className="flex flex-col flex-1 pb-20">
@@ -20,13 +20,13 @@ export function BookingPaymentInfo({
           <h2 className="font-retroguard text-3xl uppercase text-white md:text-[32px] md:leading-[48px]">
             THÔNG TIN THANH TOÁN
           </h2>
-          {/* <button
+          <button
           type="button"
           onClick={onEdit}
           className="text-base font-semibold text-[#5073CF] hover:underline"
         >
           CHỈNH SỬA THÔNG TIN
-        </button> */}
+        </button>
         </div>
 
         <div className="mt-5 space-y-3 text-base leading-6 text-white">
@@ -44,11 +44,10 @@ export function BookingPaymentInfo({
             <p className="font-medium">Email</p>
             <p className="text-right font-bold">{email}</p>
           </div>
-        </div>
-
-        <div className="flex items-start justify-between gap-4">
-          <p className="font-medium">Địa chỉ nhận hàng</p>
-          <p className="text-right font-bold">{address}</p>
+          <div className="flex items-start justify-between gap-4">
+            <p className="font-medium">Địa chỉ nhận hàng</p>
+            <p className="text-right font-bold">{address}</p>
+          </div>
         </div>
 
         <p className="mt-5 text-base leading-6 text-[#FFBE48]">
