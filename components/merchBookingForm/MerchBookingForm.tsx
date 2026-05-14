@@ -16,17 +16,17 @@ type BookingFormProps = {
 
   appliedDiscount?: any;
   isApplyingDiscount?: boolean;
-
+  isCalculatingShipping?: boolean;
   onApplyDiscount?: () => void;
   onClearDiscount?: () => void;
 
   onShippingMethodChange: (value: "pickup" | "delivery") => void;
 
-  setFullName: React.Dispatch<React.SetStateAction<string>>;
-  setPhone: React.Dispatch<React.SetStateAction<string>>;
-  setEmail: React.Dispatch<React.SetStateAction<string>>;
-  setAddress: React.Dispatch<React.SetStateAction<string>>;
-  setDiscountCode: React.Dispatch<React.SetStateAction<string>>;
+  setFullName: (value: string) => void;
+  setPhone: (value: string) => void;
+  setEmail: (value: string) => void;
+  setAddress: (value: string) => void;
+  setDiscountCode: (value: string) => void;
 };
 export default function BookingForm({
   shippingMethod,
@@ -40,7 +40,7 @@ export default function BookingForm({
   isApplyingDiscount,
   onApplyDiscount,
   onClearDiscount,
-
+  isCalculatingShipping,
   onShippingMethodChange,
   setFullName,
   setPhone,
@@ -77,7 +77,7 @@ export default function BookingForm({
               <p className="text-base text-[#24FFB0]">
                 Đã giảm thêm{" "}
                 {appliedDiscount.type === DISCOUNT_CODE_TYPE.FIXED
-                  ? `${appliedDiscount.value}%`
+                  ? `${new Intl.NumberFormat("vi-VN").format(appliedDiscount.value)}đ`
                   : `${new Intl.NumberFormat("vi-VN").format(
                       appliedDiscount.value,
                     )} đ`}
@@ -229,12 +229,16 @@ export default function BookingForm({
                   Hãy điền địa chỉ bạn muốn ship đến nhé!
                 </h1>
                 <Input
-                  className="px-5 py-4 mt-4 bg-[#333333] border-none rounded-none placeholder:text-xl placeholder:font-normal text-2xl h-auto"
                   id="address"
+                  className="px-5 py-4 mt-4 bg-[#333333] border-none rounded-none placeholder:text-xl placeholder:font-normal text-2xl h-auto"
                   onChange={(e) => setAddress(e.target.value)}
-                  name="address"
-                  placeholder="Nhập địa chỉ"
+                  placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, quận, tỉnh)"
                 />
+                {isCalculatingShipping && (
+                  <p className="text-sm text-[#A3A3A3] mt-1">
+                    Đang tính phí vận chuyển...
+                  </p>
+                )}
               </div>
             )}
             <div className="flex w-full items-start gap-4 bg-[#171717] p-4">

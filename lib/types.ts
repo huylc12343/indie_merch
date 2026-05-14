@@ -94,6 +94,8 @@ export const PAYMENT_METHOD = {
 
 export type PAYMENT_METHOD =
   (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
+export type PaymentMethod =
+  (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
 
 export const TICKET_STATUS = {
   ACTIVE: "active",

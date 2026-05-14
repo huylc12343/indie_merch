@@ -4,9 +4,13 @@ import { useCallback, useMemo, useState } from "react";
 import { checkDiscountCode } from "@/lib/api";
 import type { DiscountCodeOutput } from "@/lib/schema";
 import { validateEmail, validatePhone } from "@/lib/schema";
-import { CartItem, DISCOUNT_CODE_TYPE } from "@/lib/types";
-// import type { CreateOrderResponse } from "@/lib/api";
-
+import { CartItem, DISCOUNT_CODE_TYPE, PAYMENT_METHOD } from "@/lib/types";
+import type { CreateMerchOrderResponse } from "@/lib/api";
+import {
+  createMerchOrder,
+  type CreateMerchOrderPayload,
+  fetchBanks,
+} from "@/lib/api";
 type UseMerchOrderActionsOptions = {
   cartItems: CartItem[];
   discountCode: string;
@@ -36,9 +40,11 @@ export function useMerchOrderActions({
     useState<DiscountCodeOutput | null>(null);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
-  // const [createdOrder, setCreatedOrder] = useState<CreateOrderResponse | null>(
-  //   null,
-  // );
+  const [createdOrder, setCreatedOrder] =
+    useState<CreateMerchOrderResponse | null>(null);
+  const updateCreatedOrder = useCallback((order: CreateMerchOrderResponse) => {
+    setCreatedOrder(order);
+  }, []);
 
   const [paymentBankName, setPaymentBankName] = useState<string | null>(null);
   const resolvedDiscountCodeAmount = useMemo(() => {
@@ -87,7 +93,7 @@ export function useMerchOrderActions({
     const trimmedName = fullName.trim();
     const trimmedPhone = phone.trim();
     const trimmedEmail = email.trim();
-
+    const trimmedAddress = address.trim();
     if (!trimmedName) {
       showErrorToast("Vui lòng điền đủ thông tin.");
       return;
@@ -107,8 +113,56 @@ export function useMerchOrderActions({
 
     setIsSubmittingOrder(true);
     try {
-      // TODO: gọi API tạo đơn hàng merch ở đây
-      // await createMerchOrder({ cartItems, fullName, phone, email, address, ... });
+      const orderItemSubtotal = cartItems.reduce(
+        (acc, item) => acc + item.price * item.quantity,
+        0,
+      );
+
+      const payload: CreateMerchOrderPayload = {
+        customer_name: trimmedName,
+
+        customer_phone: trimmedPhone,
+
+        customer_email: trimmedEmail,
+
+        customer_address: trimmedAddress,
+
+        payment_method: PAYMENT_METHOD.BANK_TRANSFER,
+
+        subtotal: orderItemSubtotal,
+
+        discount_combo: 0,
+
+        discount_code_id: appliedDiscount?.id,
+
+        discount_code_amount: resolvedDiscountCodeAmount,
+        shipping_fee: shippingFee, // ← thêm dòng này
+
+        total: computedTotal,
+
+        order_items: cartItems.map((item) => ({
+          merch_id: item.id,
+
+          quantity: item.quantity,
+
+          unit_price: item.price,
+
+          subtotal: item.price * item.quantity,
+        })),
+      };
+      const [order, bankLookupResult] = await Promise.all([
+        createMerchOrder(payload),
+        fetchBanks().catch(() => null),
+      ]);
+
+      const matchedBank = bankLookupResult?.data?.find(
+        (bank) => bank.bin === order.payment_info.bin,
+      );
+
+      setCreatedOrder(order);
+
+      setPaymentBankName(matchedBank?.name ?? order.payment_info.bin);
+
       onOrderCreated();
     } catch {
       showErrorToast("Không thể tạo đơn hàng, vui lòng thử lại.");
@@ -125,6 +179,9 @@ export function useMerchOrderActions({
     appliedDiscount,
     onOrderCreated,
     showErrorToast,
+    resolvedDiscountCodeAmount,
+    shippingFee,
+    subtotal,
   ]);
 
   return {
@@ -137,7 +194,8 @@ export function useMerchOrderActions({
     computedTotal,
     resolvedDiscountCodeAmount,
 
-    // createdOrder,
+    createdOrder,
+    updateCreatedOrder,
     paymentBankName,
   };
 }

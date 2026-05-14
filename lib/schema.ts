@@ -38,6 +38,7 @@ const statusOrderSchema = v.picklist([
   ORDER_STATUS.DROP,
   ORDER_STATUS.CANCEL,
 ]);
+
 const paymentMethodSchema = v.picklist([
   PAYMENT_METHOD.BANK_TRANSFER,
   PAYMENT_METHOD.CASH,
@@ -88,10 +89,7 @@ const discountTierCoreSchema = v.object({
 const discountCodeCoreSchema = v.object({
   id: uuidSchema,
   code: v.pipe(v.string(), v.minLength(1), v.toUpperCase()),
-  type: v.picklist([
-    DISCOUNT_CODE_TYPE.FIXED,
-    DISCOUNT_CODE_TYPE.PERCENTAGE,
-  ]),
+  type: v.picklist([DISCOUNT_CODE_TYPE.FIXED, DISCOUNT_CODE_TYPE.PERCENTAGE]),
   value: v.pipe(v.number(), v.minValue(0)),
   min_order_value: v.pipe(v.number(), v.minValue(0)),
   max_uses: nullableNonNegativeIntegerSchema,
@@ -128,7 +126,23 @@ const orderCoreSchema = v.object({
   date_created: requiredDateSchema,
   date_updated: nullableDateSchema,
 });
-
+const merchOrderCoreSchema = v.object({
+  id: uuidSchema,
+  customer_name: v.pipe(v.string(), v.minLength(1)),
+  customer_phone: v.pipe(v.string(), v.regex(PHONE_NUMBER_REGEX)),
+  customer_email: v.pipe(v.string(), v.email()),
+  customer_address: v.pipe(v.string(), v.minLength(1)),
+  subtotal: v.pipe(v.number(), v.minValue(0)),
+  discount_combo: v.pipe(v.number(), v.minValue(0)),
+  discount_code_amount: v.pipe(v.number(), v.minValue(0)),
+  payment_method: paymentMethodSchema,
+  payment_info: paymentInfoSchema,
+  total: v.pipe(v.number(), v.minValue(0)),
+  status: statusOrderSchema,
+  expires_at: nullableDateSchema,
+  date_created: requiredDateSchema,
+  date_updated: nullableDateSchema,
+});
 const orderItemCoreSchema = v.object({
   id: uuidSchema,
   quantity: v.pipe(v.number(), v.integer(), v.minValue(1)),
@@ -185,11 +199,19 @@ export const orderSchema = v.object({
   ...orderCoreSchema.entries,
   event_id: v.union([uuidSchema, eventCoreSchema]),
   discount_code_id: v.union([uuidSchema, discountCodeCoreSchema, v.null()]),
-  ticket_discount_tier_id: v.union([uuidSchema, ticketDiscountTierSchema, v.null()]),
+  ticket_discount_tier_id: v.union([
+    uuidSchema,
+    ticketDiscountTierSchema,
+    v.null(),
+  ]),
   order_items: v.union([v.array(uuidSchema), v.array(orderItemSchema)]),
   tickets: v.union([v.array(uuidSchema), v.array(ticketSchema)]),
 });
+export const merchOrderSchema = v.object({
+  ...merchOrderCoreSchema.entries,
 
+  discount_code_id: v.union([uuidSchema, discountCodeCoreSchema, v.null()]),
+});
 export const orderItemWithRelationsSchema = v.object({
   ...orderItemCoreSchema.entries,
   order_id: orderSchema,
@@ -213,6 +235,7 @@ export type EventInput = v.InferInput<typeof eventSchema>;
 export type TicketTypeInput = v.InferInput<typeof ticketTypeSchema>;
 export type DiscountCodeInput = v.InferInput<typeof discountCodeSchema>;
 export type OrderInput = v.InferInput<typeof orderSchema>;
+export type MerchOrderInput = v.InferInput<typeof merchOrderSchema>;
 
 // Output types - validated and transformed data after schema processing
 export type EventOutput = v.InferOutput<typeof eventSchema>;
@@ -220,11 +243,13 @@ export type TicketTypeOutput = v.InferOutput<typeof ticketTypeSchema>;
 export type DiscountCodeOutput = v.InferOutput<typeof discountCodeSchema>;
 export type OrderOutput = v.InferOutput<typeof orderSchema>;
 export type PaymentInfoOutput = v.InferOutput<typeof paymentInfoSchema>;
-
+export type MerchOrderOutput = v.InferOutput<typeof merchOrderSchema>;
 // Resolved types - aliases kept for backward compatibility
 export type EventResolved = EventOutput;
 export type TicketTypeResolved = EventResolved["ticket_types"][number];
-
+export function validateMerchOrder(input: unknown) {
+  return v.safeParse(merchOrderSchema, input);
+}
 export function validateEvent(input: unknown) {
   return v.safeParse(eventSchema, input);
 }

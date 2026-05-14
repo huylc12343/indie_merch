@@ -9,12 +9,13 @@ import MerchBookingAside from "@/components/merchBookingAside/merch-booking-asid
 import { BookingSuccessInfo } from "@/components/bookingSuccessInfo/booking-success-info";
 import { CartItem } from "@/lib/types";
 import { useMerchOrderActions } from "@/hook/use-booking-order-actions"; // ← hook mới
-// import { toast } from "sonner"; // hoặc bất kỳ toast lib nào bạn đang dùng
-
+import { toast } from "sonner"; // hoặc bất kỳ toast lib nào bạn đang dùng
+import { PaymentModal } from "@/components/paymentModal/payment-modal";
 const SHIPPING_FEES: Record<"pickup" | "delivery", number> = {
   pickup: 0,
   delivery: 30000,
 };
+import { useShippingFee } from "@/hook/use-shipping-fee";
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -24,6 +25,8 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [discountCode, setDiscountCode] = useState("");
+  const { shippingFee, isCalculating, calculateFee } = useShippingFee();
+
   const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
     "pickup",
   );
@@ -37,22 +40,42 @@ export default function CheckoutPage() {
     () => cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
     [cartItems],
   );
-
-  const shippingFee = SHIPPING_FEES[shippingMethod];
-
+  // CheckoutPage.tsx
+  const handleShippingMethodChange = useCallback(
+    (value: "pickup" | "delivery") => {
+      setShippingMethod(value);
+      if (value === "delivery" && address) {
+        calculateFee(address, subtotal);
+      }
+    },
+    [address, subtotal, calculateFee],
+  );
+  const handleAddressChange = useCallback(
+    (value: string) => {
+      setAddress(value);
+      if (shippingMethod === "delivery") {
+        calculateFee(value, subtotal);
+      }
+    },
+    [shippingMethod, subtotal, calculateFee],
+  );
   const showErrorToast = useCallback((message: string) => {
-    // toast.error(message);
+    toast.error(message);
   }, []);
 
   const handleOrderCreated = useCallback(() => {
     setIsPaymentModalOpen(true);
+    setCurrentStep(3); // ← chuyển sang bước "Xác nhận đơn hàng"
   }, []);
+  const resolvedShippingFee = shippingMethod === "pickup" ? 0 : shippingFee;
 
   const {
     appliedDiscount,
+    createdOrder,
     handleApplyDiscount,
     handleClearDiscount,
     handleCreateOrder,
+    updateCreatedOrder,
     isApplyingDiscount,
     isSubmittingOrder,
     computedTotal,
@@ -67,7 +90,7 @@ export default function CheckoutPage() {
     phone,
     email,
     address: shippingMethod === "delivery" ? address : "Bụi dốc",
-    shippingFee,
+    shippingFee: resolvedShippingFee,
     subtotal,
     showErrorToast,
     onOrderCreated: handleOrderCreated,
@@ -95,7 +118,7 @@ export default function CheckoutPage() {
             {currentStep === 1 ? (
               <MerchBookingForm
                 shippingMethod={shippingMethod}
-                onShippingMethodChange={setShippingMethod}
+                onShippingMethodChange={handleShippingMethodChange}
                 fullName={fullName}
                 phone={phone}
                 email={email}
@@ -106,7 +129,8 @@ export default function CheckoutPage() {
                 setFullName={setFullName}
                 setPhone={setPhone}
                 setEmail={setEmail}
-                setAddress={setAddress}
+                setAddress={handleAddressChange} // ← dùng handler mới
+                isCalculatingShipping={isCalculating}
                 setDiscountCode={setDiscountCode}
                 onApplyDiscount={handleApplyDiscount} // ← thêm
                 onClearDiscount={handleClearDiscount} // ← thêm
@@ -127,7 +151,7 @@ export default function CheckoutPage() {
               cartItems={cartItems}
               subtotal={subtotal}
               discountCodeAmount={resolvedDiscountCodeAmount}
-              shippingFee={shippingFee}
+              shippingFee={shippingMethod === "pickup" ? 0 : shippingFee}
               total={computedTotal} // ← dùng computedTotal đã trừ discount
               totalLabel={currentStep === 1 ? "Tạm tính" : "Tổng tiền"}
               actionLabel={currentStep === 1 ? "Tiếp tục" : "Thanh toán"}
@@ -145,16 +169,13 @@ export default function CheckoutPage() {
           </div>
         </div>
       </section>
-      {/* <PaymentModal
-        // key={`${createdOrder?.id ?? "empty"}-${isPaymentModalOpen ? "open" : "closed"}`}
+      <PaymentModal
+        key={`${createdOrder?.id ?? "empty"}-${isPaymentModalOpen ? "open" : "closed"}`}
         open={isPaymentModalOpen}
-        // order={createdOrder}
+        order={createdOrder}
         bankName={paymentBankName}
-        onClose={() => {
-          setIsPaymentModalOpen(false);
-          setCurrentStep(3);
-        }}
-      /> */}
+        onClose={() => setIsPaymentModalOpen(false)}
+      />
     </div>
   );
 }

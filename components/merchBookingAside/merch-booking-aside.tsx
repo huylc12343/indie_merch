@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/lib/types";
 
@@ -15,7 +16,7 @@ type BookingSummaryAsideProps = {
   totalLabel?: string;
   actionLabel?: string;
   actionDisabled?: boolean;
-  onActionClick?: () => void;
+  onActionClick?: () => Promise<void> | void;
   showActionButton?: boolean;
   showPolicyNote?: boolean;
 };
@@ -34,14 +35,22 @@ export default function BookingSummaryAside({
   showActionButton = true,
   showPolicyNote = false,
 }: BookingSummaryAsideProps) {
-  const handleActionClick = () => {
-    if (actionDisabled) return;
-    onActionClick?.();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleActionClick = async () => {
+    if (actionDisabled || isLoading) return;
+
+    try {
+      setIsLoading(true);
+      await onActionClick?.();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col w-full  lg:w-[387px]">
-      <aside className=" bg-white px-5 py-6 pb-5 text-black h-fit">
+    <div className="flex flex-col w-full lg:w-[387px]">
+      <aside className="bg-white px-5 py-6 pb-5 text-black h-fit">
         <h3 className="text-xl font-bold">{title}</h3>
 
         {/* Header */}
@@ -66,7 +75,10 @@ export default function BookingSummaryAside({
                   />
 
                   <div className="flex flex-col">
-                    <p className="text-xl font-medium leading-5">{item.name}</p>
+                    <p className="text-xl font-medium leading-5">
+                      {item.name}
+                    </p>
+
                     <p className="mt-1 text-xl">
                       {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                     </p>
@@ -88,6 +100,7 @@ export default function BookingSummaryAside({
                   <p className="text-sm">
                     {item.quantity.toString().padStart(2, "0")}
                   </p>
+
                   <p className="mt-1 text-xl">
                     {new Intl.NumberFormat("vi-VN").format(
                       item.price * item.quantity,
@@ -105,29 +118,35 @@ export default function BookingSummaryAside({
         {/* Shipping Fee */}
         <div className="mt-5 flex items-center justify-between text-base font-bold">
           <p>Phí vận chuyển</p>
+
           <p className="text-[#FF017E]">
             {shippingFee === 0
               ? "Miễn phí"
               : new Intl.NumberFormat("vi-VN").format(shippingFee) + " đ"}
           </p>
         </div>
+
         <div className="mt-5 h-px bg-[#D9D9D9]" />
+
         {discountCodeAmount > 0 && (
           <>
             <div className="mt-5 flex items-center justify-between text-base font-bold">
               <p>Giảm giá</p>
 
               <p className="text-green-500">
-                - {new Intl.NumberFormat("vi-VN").format(discountCodeAmount)} đ
+                -{" "}
+                {new Intl.NumberFormat("vi-VN").format(discountCodeAmount)} đ
               </p>
             </div>
 
             <div className="mt-5 h-px bg-[#D9D9D9]" />
           </>
         )}
+
         {/* Total */}
         <div className="mt-5 flex items-center justify-between text-base font-bold">
           <p>{totalLabel}</p>
+
           <p className="text-[#FF017E]">
             {new Intl.NumberFormat("vi-VN").format(total) + " đ"}
           </p>
@@ -138,13 +157,14 @@ export default function BookingSummaryAside({
           <Button
             type="button"
             onClick={handleActionClick}
-            data-disabled={actionDisabled ? "true" : "false"}
-            className="mt-5 h-14 w-full rounded-none bg-[#FF017E] text-base font-semibold text-white hover:bg-[#ff2f94] data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-60"
+            disabled={actionDisabled || isLoading}
+            className="mt-5 h-14 w-full rounded-none bg-[#FF017E] text-base font-semibold text-white hover:bg-[#ff2f94] disabled:pointer-events-none disabled:opacity-60"
           >
-            {actionLabel}
+            {isLoading ? "ĐANG XỬ LÝ..." : actionLabel}
           </Button>
         ) : null}
       </aside>
+
       {showPolicyNote ? (
         <>
           <p className="mt-0 text-center text-sm leading-5 text-black bg-white p-4 pt-0">
@@ -158,6 +178,7 @@ export default function BookingSummaryAside({
               Điều khoản của chương trình
             </Link>
           </p>
+
           <p className="mt-3 text-center text-sm leading-5 text-white">
             Hãy liên hệ{" "}
             <Link
