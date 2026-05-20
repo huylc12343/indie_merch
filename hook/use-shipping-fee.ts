@@ -6,45 +6,49 @@ export function useShippingFee() {
   const [isCalculating, setIsCalculating] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastCallRef = useRef(0);
 
-  const calculateFee = useCallback(
-    (address: string, totalPrice: number) => {
-      if (!address.trim() || address.trim().length < 10) {
-        setShippingFee(0);
-        return;
-      }
+  const calculateFee = useCallback((address: string, subtotal: number) => {
+    // ❌ Không đủ điều kiện → reset
+    if (!address.trim() || address.trim().length < 15 || subtotal <= 0) {
+      setShippingFee(0);
+      return;
+    }
 
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+    // debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
-      debounceRef.current = setTimeout(async () => {
-        setIsCalculating(true);
+    debounceRef.current = setTimeout(async () => {
+      const callId = Date.now();
+      lastCallRef.current = callId;
 
-        try {
-          const data = await calculateShippingFee(
-            address,
-            totalPrice,
-          );
+      setIsCalculating(true);
 
-          const fee = data?.data?.fee;
+      try {
+        const data = await calculateShippingFee(address, subtotal);
 
-          if (typeof fee === "number") {
-            setShippingFee(fee);
-          } else {
-            setShippingFee(0);
-          }
-        } catch (error) {
-          console.error("Shipping Fee Error:", error);
-
-          setShippingFee(0);
-        } finally {
-          setIsCalculating(false);
+        if (typeof data.shipping_fee === "number") {
+          setShippingFee(data.shipping_fee);
         }
-      }, 800);
-    },
-    [],
-  );
+
+        // ❗ chống race condition
+        if (lastCallRef.current !== callId) return;
+
+        if (typeof data.shipping_fee === "number") {
+          setShippingFee(data.shipping_fee);
+        } else {
+          setShippingFee(0);
+        }
+      } catch (error) {
+        console.error("Shipping Fee Error:", error);
+        setShippingFee(0);
+      } finally {
+        setIsCalculating(false);
+      }
+    }, 800);
+  }, []);
 
   useEffect(() => {
     return () => {

@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const BASE_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:5000";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    console.log("BODY:", body);
-
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/shipping/calculate",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(body),
-        cache: "no-store",
+    const response = await fetch(`${BASE_API_URL}/shipping/fee`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        address: body.address,
+        subtotal: body.subtotal,
+      }),
+      cache: "no-store",
+    });
 
     const text = await response.text();
-
-    console.log("FASTAPI RESPONSE:", text);
 
     let data;
 
@@ -29,29 +27,23 @@ export async function POST(request: NextRequest) {
       data = JSON.parse(text);
     } catch {
       return NextResponse.json(
-        {
-          error: "Invalid JSON from shipping service",
-          raw: text,
-        },
-        {
-          status: 500,
-        },
+        { error: "Invalid JSON from backend", raw: text },
+        { status: 500 },
       );
     }
 
-    return NextResponse.json(data, {
-      status: response.status,
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data?.error || "Shipping API failed" },
+        { status: response.status },
+      );
+    }
+
+    // ✅ normalize response
+    return NextResponse.json({
+      shipping_fee: data.shipping_fee ?? data.GIA_CUOC ?? data.data?.fee ?? 0,
     });
   } catch (error) {
-    console.error("SHIPPING API ROUTE ERROR:", error);
-
-    return NextResponse.json(
-      {
-        error: String(error),
-      },
-      {
-        status: 500,
-      },
-    );
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

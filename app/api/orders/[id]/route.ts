@@ -10,7 +10,7 @@ export async function GET(
 
   const baseUrl = process.env.NEXT_PUBLIC_BE_URL;
 
-  const res = await fetch(`${baseUrl}/api/orders/${id}`, {
+  const res = await fetch(`${baseUrl}/orders/${id}`, {
     cache: "no-store",
   });
 

@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 import type { CreateMerchOrderResponse } from "@/lib/api";
-import { getMerchOrder } from "@/lib/api";
+import { getMerchOrder, confirmPayment } from "@/lib/api";
 
 import { ORDER_STATUS } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -122,67 +122,44 @@ export function PaymentModal({
   const [paymentStatus, setPaymentStatus] = useState<string>("PENDING");
 
   const [checkingPayment, setCheckingPayment] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const handleConfirmPayment = async () => {
+    if (!order?.id) return;
 
+    try {
+      setIsConfirming(true);
+      console.log(
+        "Xác nhận thanh toán cho đơn hàng:",
+        order.id,
+        order.payment_info.description,
+        order.payment_info.amount,
+        order.payment_info.bin,
+        order.payment_info.account_name,
+        order.payment_info.account_number,
+        order.payment_info.qr_code,
+      );
+      await confirmPayment(
+        order.id,
+        order.payment_info.description, // chính là nội dung chuyển khoản
+      );
+
+      toast.success("Đã xác nhận thanh toán, vui lòng chờ...");
+    } catch (error) {
+      toast.error("Xác nhận thất bại, kiểm tra lại nội dung CK");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
   /*
     POLLING MỖI 3 GIÂY
   */
   // payment-modal.tsx
-useEffect(() => {
-  if (!open || !order?.id) return;
+  useEffect(() => {
+    if (!order) return;
 
-  let intervalId: ReturnType<typeof setInterval> | null = null;
+    setPaymentStatus(order.status);
+  }, [order]);
 
-  const checkPayment = async () => {
-    try {
-      setCheckingPayment(true);
-      
-      const latestOrder = await getMerchOrder(order.id);
-
-      setPaymentStatus(latestOrder.status);
-
-      if (latestOrder.status === ORDER_STATUS.DONE) {
-        toast.success("Thanh toán thành công!");
-
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-
-        onClose();
-
-        return;
-      }
-
-      if (
-        latestOrder.status === ORDER_STATUS.CANCEL ||
-        latestOrder.status === ORDER_STATUS.DROP
-      ) {
-        toast.error("Đơn hàng đã hết hạn hoặc bị huỷ.");
-
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-
-        return;
-      }
-    } catch (error) {
-      console.error("Lỗi kiểm tra thanh toán:", error);
-    } finally {
-      setCheckingPayment(false);
-    }
-  };
-
-  void checkPayment();
-
-  intervalId = setInterval(() => {
-    void checkPayment();
-  }, 5000);
-
-  return () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-  };
-}, [open, order?.id, onClose]);
   if (!open || !order) {
     return null;
   }
@@ -208,7 +185,7 @@ useEffect(() => {
       displayValue: new Intl.NumberFormat("vi-VN").format(
         order.payment_info.amount,
       ),
-      copyValue: order.payment_info.amount.toString(),
+      copyValue: order.payment_info?.amount?.toString() ?? "",
     },
     {
       label: "Nội dung chuyển khoản",
@@ -233,10 +210,7 @@ useEffect(() => {
             </p>
 
             <div className="mt-1 flex items-center gap-2">
-              {checkingPayment && (
-                <Loader2 className="size-4 animate-spin text-[#FF017E]" />
-              )}
-
+              <Loader2 className="size-4 animate-spin text-[#FF017E]" />
               <p className="text-sm text-[#6C6C6C]">
                 Trạng thái: {paymentStatus}
               </p>
@@ -281,15 +255,14 @@ useEffect(() => {
                         <Loader2 className="size-8 animate-spin text-[#FF017E]" />
                       </div>
                     )}
-
                     <Image
-                      src={order.payment_info.qr_code}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(order.payment_info.qr_code)}`}
                       alt="QR thanh toán"
                       fill
                       unoptimized
                       onLoad={() => setIsQrLoading(false)}
                       onError={() => setIsQrLoading(false)}
-                      className="scale-[1.4] object-cover pt-7"
+                      className="object-contain"
                     />
                   </div>
                 </div>

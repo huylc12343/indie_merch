@@ -4,6 +4,7 @@ const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL;
 
 export async function fetchMerch(): Promise<MerchItem[]> {
   if (!baseUrl) throw new Error("Missing NEXT_PUBLIC_DIRECTUS_URL");
+  console.log("BASE URL:", baseUrl);
 
   const res = await fetch(
     `${baseUrl}/items/merch?fields=*,merch_images.directus_files_id.*`,
@@ -12,7 +13,6 @@ export async function fetchMerch(): Promise<MerchItem[]> {
       cache: "no-store",
     },
   );
-
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }

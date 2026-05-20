@@ -142,12 +142,9 @@ export function useMerchOrderActions({
 
         order_items: cartItems.map((item) => ({
           merch_id: item.id,
-
-          quantity: item.quantity,
-
-          unit_price: item.price,
-
-          subtotal: item.price * item.quantity,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.price),
+          subtotal: Number(item.price) * Number(item.quantity),
         })),
       };
       const [order, bankLookupResult] = await Promise.all([

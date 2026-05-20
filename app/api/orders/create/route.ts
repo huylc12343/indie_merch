@@ -3,17 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BE_URL}/api/orders/create`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const BASE_API_URL =
+      process.env.NEXT_PUBLIC_BE_URL || "http://127.0.0.1:5000";
+    const response = await fetch(`${BASE_API_URL}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
     const data = await response.json();
 
@@ -25,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -219,26 +219,30 @@ export async function getOrderById(
   const payload = (await response.json()) as CreateMerchOrderResponse;
   return parse(merchOrderSchema, payload);
 }
+// export type ShippingFeeResponse = {
+//   data: {
+//     fee: number;
+//     service: string;
+//     serviceCode: string;
+//   };
+// };
+
 export type ShippingFeeResponse = {
-  data: {
-    fee: number;
-    service: string;
-    serviceCode: string;
-  };
+  shipping_fee: number;
 };
 
 export async function calculateShippingFee(
   address: string,
-  totalPrice: number,
-): Promise<ShippingFeeResponse> {
+  subtotal: number,
+): Promise<{ shipping_fee: number }> {
   const response = await fetch("/api/shipping/calculate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      receiverAddress: address,
-      productPrice: totalPrice,
+      address,
+      subtotal,
     }),
     cache: "no-store",
   });
@@ -249,5 +253,24 @@ export async function calculateShippingFee(
     );
   }
 
-  return (await response.json()) as ShippingFeeResponse;
+  return await response.json();
+}
+
+export async function confirmPayment(orderId: string, transferContent: string) {
+  const res = await fetch("/api/orders/confirm-payment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      order_id: orderId,
+      transfer_content: transferContent,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Confirm payment failed");
+  }
+
+  return res.json();
 }
