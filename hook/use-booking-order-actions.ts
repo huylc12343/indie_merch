@@ -11,6 +11,7 @@ import {
   type CreateMerchOrderPayload,
   fetchBanks,
 } from "@/lib/api";
+import { trim } from "valibot";
 type UseMerchOrderActionsOptions = {
   cartItems: CartItem[];
   discountCode: string;
@@ -36,6 +37,12 @@ export function useMerchOrderActions({
   showErrorToast,
   onOrderCreated,
 }: UseMerchOrderActionsOptions) {
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  }>({});
   const [appliedDiscount, setAppliedDiscount] =
     useState<DiscountCodeOutput | null>(null);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
@@ -54,9 +61,9 @@ export function useMerchOrderActions({
       : appliedDiscount.value;
   }, [appliedDiscount, subtotal]);
 
-  const computedTotal = useMemo(
-    () => Math.max(0, subtotal + shippingFee - resolvedDiscountCodeAmount),
-    [subtotal, shippingFee, resolvedDiscountCodeAmount],
+  const computedTotal = Math.max(
+    0,
+    subtotal + shippingFee - resolvedDiscountCodeAmount,
   );
 
   const handleApplyDiscount = useCallback(async () => {
@@ -133,7 +140,7 @@ export function useMerchOrderActions({
 
         discount_combo: 0,
 
-        discount_code_id: appliedDiscount?.id,
+        discount_code_id: appliedDiscount?.code ?? "", // ✅ đổi từ discount_code_id
 
         discount_code_amount: resolvedDiscountCodeAmount,
         shipping_fee: shippingFee, // ← thêm dòng này
@@ -145,6 +152,9 @@ export function useMerchOrderActions({
           quantity: Number(item.quantity),
           unit_price: Number(item.price),
           subtotal: Number(item.price) * Number(item.quantity),
+          selected_type: item.selectedType ?? null, // thêm
+          selected_color: item.selectedColor ?? null, // thêm
+          selected_size: item.selectedSize ?? null, // thêm
         })),
       };
       const [order, bankLookupResult] = await Promise.all([
@@ -180,6 +190,39 @@ export function useMerchOrderActions({
     shippingFee,
     subtotal,
   ]);
+  const validateForm = useCallback(() => {
+    const newErrors: typeof errors = {};
+
+    const trimmedName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email.trim();
+    const trimmedAddress = address.trim();
+
+    if (!trimmedName) {
+      newErrors.fullName = "Vui lòng nhập họ tên";
+    }
+    if (!trimmedPhone) {
+      newErrors.phone = "Vui lòng nhập số điện thoại";
+    } else if (!validatePhone(trimmedPhone).success) {
+      newErrors.phone = "Số điện thoại không hợp lệ";
+    }
+    if (!trimmedEmail) {
+      newErrors.email = "Vui lòng nhập email";
+    } else if (!validateEmail(trimmedEmail).success) {
+      newErrors.email = "Email không hợp lệ";
+    }
+    if (!trimmedAddress) {
+      newErrors.address = "Vui lòng nhập địa chỉ";
+    }
+
+    // if (shippingMethod === "delivery" && !trimmedAddress) {
+    //   newErrors.address = "Vui lòng nhập địa chỉ";
+    // }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }, [fullName, phone, email, address /*shippingMethod*/]);
 
   return {
     appliedDiscount,
@@ -190,7 +233,8 @@ export function useMerchOrderActions({
     isSubmittingOrder,
     computedTotal,
     resolvedDiscountCodeAmount,
-
+    validateForm,
+    errors,
     createdOrder,
     updateCreatedOrder,
     paymentBankName,

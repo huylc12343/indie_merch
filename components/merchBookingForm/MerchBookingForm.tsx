@@ -13,7 +13,7 @@ type BookingFormProps = {
   email: string;
   address: string;
   discountCode: string;
-
+  resolvedDiscountCodeAmount: number;
   appliedDiscount?: any;
   isApplyingDiscount?: boolean;
   isCalculatingShipping?: boolean;
@@ -27,6 +27,12 @@ type BookingFormProps = {
   setEmail: (value: string) => void;
   setAddress: (value: string) => void;
   setDiscountCode: (value: string) => void;
+  errors?: {
+    fullName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  };
 };
 export default function BookingForm({
   shippingMethod,
@@ -35,7 +41,8 @@ export default function BookingForm({
   email,
   address,
   discountCode,
-
+  errors,
+  resolvedDiscountCodeAmount,
   appliedDiscount,
   isApplyingDiscount,
   onApplyDiscount,
@@ -79,8 +86,8 @@ export default function BookingForm({
                 {appliedDiscount.type === DISCOUNT_CODE_TYPE.FIXED
                   ? `${new Intl.NumberFormat("vi-VN").format(appliedDiscount.value)}đ`
                   : `${new Intl.NumberFormat("vi-VN").format(
-                      appliedDiscount.value,
-                    )} đ`}
+                      resolvedDiscountCodeAmount,
+                    )}đ (${appliedDiscount.value}%)`}
               </p>
             </div>
           ) : (
@@ -133,11 +140,17 @@ export default function BookingForm({
               </label>
               <Input
                 id="fullName"
+                value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Nhập họ và tên"
                 autoComplete="off"
-                className="h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0"
+                className={`h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0 ${
+                  errors?.fullName ? "border border-red-500" : ""
+                }`}
               />
+              {errors?.fullName && (
+                <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+              )}
             </div>
 
             <div className="grid gap-5 lg:grid-cols-2">
@@ -150,11 +163,17 @@ export default function BookingForm({
                 </label>
                 <Input
                   id="phone"
+                  value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Nhập số điện thoại"
                   autoComplete="off"
-                  className="h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0"
+                  className={`h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0 ${
+                    errors?.phone ? "border border-red-500" : ""
+                  }`}
                 />
+                {errors?.phone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                )}
               </div>
               <div>
                 <label
@@ -166,11 +185,17 @@ export default function BookingForm({
                 <Input
                   id="email"
                   type="email"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Nhập email"
                   autoComplete="off"
-                  className="h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0"
+                  className={`h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0 ${
+                    errors?.email ? "border border-red-500" : ""
+                  }`}
                 />
+                {errors?.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
               </div>
             </div>
           </div>
@@ -230,10 +255,16 @@ export default function BookingForm({
                 </h1>
                 <Input
                   id="address"
-                  className="px-5 py-4 mt-4 bg-[#333333] border-none rounded-none placeholder:text-xl placeholder:font-normal text-2xl h-auto"
+                  value={address}
+                  className={`px-5 py-4 mt-4 bg-[#333333] border-none rounded-none placeholder:text-xl placeholder:font-normal text-2xl h-auto${
+                    errors?.address ? "border border-red-500" : ""
+                  }`}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, quận, tỉnh)"
                 />
+                {errors?.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                )}
                 {isCalculatingShipping && (
                   <p className="text-sm text-[#A3A3A3] mt-1">
                     Đang tính phí vận chuyển...

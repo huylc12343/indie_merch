@@ -68,6 +68,9 @@ type CreateMerchOrderItemPayload = {
   quantity: number;
   unit_price: number;
   subtotal: number;
+  selected_type?: string | null; // thêm
+  selected_color?: string | null; // thêm
+  selected_size?: string | null; // thêm
 };
 export type BankLookupResponse = {
   data?: Array<{

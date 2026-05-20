@@ -24,7 +24,9 @@ type OrderSnapshot = {
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [orderSnapshot, setOrderSnapshot] = useState<OrderSnapshot | null>(null);
+  const [orderSnapshot, setOrderSnapshot] = useState<OrderSnapshot | null>(
+    null,
+  );
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isPollingEnabled, setIsPollingEnabled] = useState(false);
@@ -34,9 +36,9 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [discountCode, setDiscountCode] = useState("");
-
-  const [shippingMethod, setShippingMethod] =
-    useState<"pickup" | "delivery">("pickup");
+  const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
+    "pickup",
+  );
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
@@ -68,15 +70,11 @@ export default function CheckoutPage() {
 
   // ================= SUBTOTAL =================
   const subtotal = useMemo(() => {
-    return cartItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0,
-    );
+    return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   }, [cartItems]);
 
   // ================= SHIPPING =================
-  const resolvedShippingFee =
-    shippingMethod === "pickup" ? 0 : shippingFee;
+  const resolvedShippingFee = shippingMethod === "pickup" ? 0 : shippingFee;
 
   useEffect(() => {
     if (shippingMethod !== "delivery") return;
@@ -124,6 +122,8 @@ export default function CheckoutPage() {
     computedTotal,
     resolvedDiscountCodeAmount,
     paymentBankName,
+    validateForm,
+    errors,
   } = useMerchOrderActions({
     cartItems,
     discountCode,
@@ -196,9 +196,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#2F2F2F]">
       <section className="bg-[#171717] px-30 pt-[77px] pb-[140px]">
         <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
-          <p className="font-retroguard text-[60px] text-white">
-            THANH TOÁN
-          </p>
+          <p className="font-retroguard text-[60px] text-white">THANH TOÁN</p>
 
           <BookingStepper
             currentStep={currentStep}
@@ -212,6 +210,7 @@ export default function CheckoutPage() {
           {currentStep === 1 ? (
             <MerchBookingForm
               shippingMethod={shippingMethod}
+              resolvedDiscountCodeAmount={resolvedDiscountCodeAmount}
               onShippingMethodChange={handleShippingMethodChange}
               fullName={fullName}
               phone={phone}
@@ -228,15 +227,14 @@ export default function CheckoutPage() {
               setDiscountCode={setDiscountCode}
               onApplyDiscount={handleApplyDiscount}
               onClearDiscount={handleClearDiscount}
+              errors={errors}
             />
           ) : currentStep === 2 ? (
             <BookingPaymentInfo
               fullName={fullName}
               phone={phone}
               email={email}
-              address={
-                shippingMethod === "delivery" ? address : "Bụi dốc"
-              }
+              address={shippingMethod === "delivery" ? address : "Bụi dốc"}
               onEdit={handleEditPaymentInfo}
             />
           ) : (
@@ -255,10 +253,13 @@ export default function CheckoutPage() {
             showPolicyNote={currentStep === 2}
             onActionClick={
               currentStep === 1
-                ? () => setCurrentStep(2)
+                ? () => {
+                    if (!validateForm()) return; // 🔥 chặn nếu sai
+                    setCurrentStep(2);
+                  }
                 : currentStep === 2
-                ? handleCreateOrder
-                : undefined
+                  ? handleCreateOrder
+                  : undefined
             }
           />
         </div>
