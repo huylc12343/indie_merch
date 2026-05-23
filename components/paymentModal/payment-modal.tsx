@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { CopyIcon, Loader2, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
-
+import { PAYMENT_STATUS_TEXT } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
 import type { CreateMerchOrderResponse } from "@/lib/api";
@@ -120,7 +120,8 @@ export function PaymentModal({
   const [isQrLoading, setIsQrLoading] = useState(true);
 
   const [paymentStatus, setPaymentStatus] = useState<string>("PENDING");
-
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isExpired, setIsExpired] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const handleConfirmPayment = async () => {
@@ -155,15 +156,58 @@ export function PaymentModal({
   */
   // payment-modal.tsx
   useEffect(() => {
-    if (!order) return;
+    if (!order?.expires_at) return;
 
-    setPaymentStatus(order.status);
-  }, [order]);
+    setIsExpired(false);
+    setTimeLeft(0);
 
+    // 🔥 FIX timezone
+    const expireTime = new Date(order.expires_at).getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime(); // vẫn OK
+
+      const diff = Math.max(0, Math.floor((expireTime - now) / 1000));
+
+      setTimeLeft(diff);
+
+      if (diff <= 0) {
+        setIsExpired(true);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [order?.expires_at]);
+
+  useEffect(() => {
+    if (!isExpired || !order?.id) return;
+
+    const handleExpire = async () => {
+      try {
+        const latest = await getMerchOrder(order.id);
+        setPaymentStatus(latest.status);
+      } catch (err) {
+        console.error(err);
+      }
+
+      // ⏳ hiển thị trạng thái 3s rồi đóng
+      setTimeout(() => {
+        onClose();
+      }, 3000);
+    };
+
+    handleExpire();
+  }, [isExpired, order?.id]);
   if (!open || !order) {
     return null;
   }
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
 
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
   const transferFields = [
     {
       label: "Tên ngân hàng",
@@ -208,12 +252,17 @@ export function PaymentModal({
             <p className="font-heading text-[32px] leading-12 text-[#FF017E]">
               THANH TOÁN
             </p>
+            <div className="mt-2 flex flex-col gap-2">
+              {/* STATUS */}
+              <div className="flex items-center gap-2">
+                <Loader2 className="size-4 animate-spin text-[#FF017E]" />
+                <p className="text-sm text-[#6C6C6C]">
+                  Trạng thái:{" "}
+                  {PAYMENT_STATUS_TEXT[paymentStatus] ?? paymentStatus}
+                </p>
+              </div>
 
-            <div className="mt-1 flex items-center gap-2">
-              <Loader2 className="size-4 animate-spin text-[#FF017E]" />
-              <p className="text-sm text-[#6C6C6C]">
-                Trạng thái: {paymentStatus}
-              </p>
+              {/* COUNTDOWN */}
             </div>
           </div>
 
@@ -275,6 +324,18 @@ export function PaymentModal({
                       order.payment_info.amount,
                     )}{" "}
                     đ
+                  </p>
+                </div>
+                <div className="flex items-center justify-between rounded-[8px] bg-[#F5F5F5] px-3 py-2">
+                  <p className="text-xs text-[#6C6C6C]">Thời gian còn lại</p>
+
+                  <p
+                    className={cn(
+                      "text-base font-semibold",
+                      timeLeft <= 60 ? "text-red-500" : "text-[#FF017E]",
+                    )}
+                  >
+                    {isExpired ? "Hết hạn" : formatTime(timeLeft)}
                   </p>
                 </div>
               </div>

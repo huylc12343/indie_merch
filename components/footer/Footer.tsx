@@ -1,76 +1,75 @@
 import Link from "next/link";
 import Image from "next/image";
-import FooterIcon from "@/app/pink_logo.svg"
-import { Phone,Mail, MapPin } from "lucide-react";
+import FooterIcon from "@/app/pink_logo.svg";
+import { Phone, Mail, MapPin } from "lucide-react";
+
 export default function Footer() {
   return (
-    <div className="footer px-20 py-40 bg-[#171717] text-white font-[var(--font-inter)]">
-      <Image src={FooterIcon} alt="icon-pink" />
-      <div className="flex justify-between gap-15 mt-25">
-        <div className="flex-col max-w-[817px]">
-          <span className="text-xl leading-6 tracking-normal">
+    <footer className="bg-[#171717] text-white font-[var(--font-inter)] px-4 py-12 md:px-20 md:py-32">
+      {/* Logo */}
+      <div className="mb-10">
+        <Image src={FooterIcon} alt="icon-pink" className="w-auto " />
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col md:flex-row gap-10 md:gap-15 md:justify-between">
+        
+        {/* LEFT */}
+        <div className="max-w-full md:max-w-[817px]">
+          <p className="text-sm md:text-[20px] leading-6 text-gray-300">
             In-đỉ In-đi là không gian nơi âm nhạc độc lập được kể và được lắng
-            nghe, nơi nghệ sĩ và khán giả gặp nhau trong cùng một tần số cảm
-            xúc.
-          </span>
-          <h3 className="mt-10 mb-5">Liên hệ</h3>
-          <ul className="gap-5">
-            <ul className="space-y-4">
-              <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                09987654321
-              </li>
+            nghe, nơi nghệ sĩ và khán giả gặp nhau trong cùng một tần số cảm xúc.
+          </p>
 
-              <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                123@gmail.com
-              </li>
+          <h3 className="mt-6 mb-3 text-base font-semibold">Liên hệ</h3>
 
-              <li className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                205 giải phóng, hà nội
-              </li>
-            </ul>
-          </ul>
-        </div>
-        <div className="flex-col">
-          <h3 className="font-normalleading-[20px] text-[16px]">ĐIỀU HƯỚNG</h3>
-          <ul className="font-bold text-[28px] leading-[36px] tracking-normal space-y-2">
-            <li>
-              <Link href={"/"}>Trang chủ</Link>
+          <ul className="space-y-3 text-sm md:text-base text-gray-300">
+            <li className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              09987654321
             </li>
-            <li>
-              <Link href={"/"}>Về chúng mình</Link>
+
+            <li className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              123@gmail.com
             </li>
-            <li>
-              <Link href={"/"}>Sự kiện</Link>
-            </li>
-            <li>
-              <Link href={"/"}>Minigame</Link>
-            </li>
-            <li>
-              <Link href={"/"}>Merchandise</Link>
+
+            <li className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              205 Giải Phóng, Hà Nội
             </li>
           </ul>
         </div>
-        <div className="flex-col">
-          <h3 className="font-normalleading-[20px] text-[16px]">SOCIAL</h3>
-          <ul className="font-bold text-[28px] leading-[36px] tracking-normal space-y-2">
-            <li>
-              <Link href={"/"}>Facebook</Link>
-            </li>
-            <li>
-              <Link href={"/"}>Instagram</Link>
-            </li>
-            <li>
-              <Link href={"/"}>Tiktok</Link>
-            </li>
-            <li>
-              <Link href={"/"}>Threads</Link>
-            </li>
+
+        {/* MIDDLE */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">
+            ĐIỀU HƯỚNG
+          </h3>
+
+          <ul className="space-y-2 text-lg md:text-2xl font-bold">
+            <li><Link href="/">Trang chủ</Link></li>
+            <li><Link href="/">Về chúng mình</Link></li>
+            <li><Link href="/">Sự kiện</Link></li>
+            <li><Link href="/">Minigame</Link></li>
+            <li><Link href="/">Merchandise</Link></li>
+          </ul>
+        </div>
+
+        {/* RIGHT */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-gray-400">
+            SOCIAL
+          </h3>
+
+          <ul className="space-y-2 text-lg md:text-2xl font-bold">
+            <li><Link href="/">Facebook</Link></li>
+            <li><Link href="/">Instagram</Link></li>
+            <li><Link href="/">Tiktok</Link></li>
+            <li><Link href="/">Threads</Link></li>
           </ul>
         </div>
       </div>
-    </div>
+    </footer>
   );
 }

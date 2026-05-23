@@ -19,7 +19,7 @@ export default function CartSidebar({
   setOpen: (v: boolean) => void;
 }) {
   const router = useRouter();
-
+  const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [openVariant, setOpenVariant] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -70,7 +70,7 @@ export default function CartSidebar({
         item.cartKey === cartKey
           ? {
               ...item,
-              quantity: item.quantity - 1,
+              quantity: Math.max(1, item.quantity - 1), // 🔥 chặn min = 1
             }
           : item,
       )
@@ -81,6 +81,9 @@ export default function CartSidebar({
 
   // remove
   const removeItem = (cartKey: string) => {
+    const confirmDelete = window.confirm("Bạn có chắc muốn xoá sản phẩm này?");
+
+    if (!confirmDelete) return;
     const updated = cartItems.filter((item) => item.cartKey !== cartKey);
 
     saveCart(updated);
@@ -153,9 +156,10 @@ export default function CartSidebar({
     const selectedCartItems = cartItems.filter((item) =>
       selectedItems.includes(item.cartKey),
     );
-
     // không có sản phẩm được chọn
     if (selectedCartItems.length === 0) return;
+    setLoading(true); // ✅ bật loading
+    localStorage.removeItem("buynow"); // 🔥 clear buy now cũ
 
     localStorage.setItem("checkout_items", JSON.stringify(selectedCartItems));
 
@@ -173,7 +177,7 @@ export default function CartSidebar({
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-[500px] bg-white z-50 transition-transform duration-300
+        className={`fixed top-0 right-0 h-full  w-full md:w-[500px] bg-white z-50 transition-transform duration-300
         ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex flex-col h-full p-8">
@@ -225,31 +229,44 @@ export default function CartSidebar({
                 />
 
                 <div className="flex-1">
-                  <h4 className="font-medium text-2xl">{item.name}</h4>
+                  <h4 className="font-medium text-sm md:text-2xl">
+                    {item.name}
+                  </h4>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-[var(--color-primary-pink)] text-3xl font-normal ">
+                    <p className="text-[var(--color-primary-pink)] text-xl md:text-3xl font-normal ">
                       {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                     </p>
                     {/* variants */}
                     <div className="relative">
-                      <button
-                        onClick={() =>
-                          setOpenVariant(
-                            openVariant === item.cartKey ? null : item.cartKey,
-                          )
-                        }
-                        className="border px-2 py-1 text-xs"
-                      >
-                        {[
-                          item.selectedColor,
-                          item.selectedSize,
-                          item.selectedType,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                        <ChevronDown size={12} className="inline-block ml-1" />
-                      </button>
+                      <div className="flex items-center w-[80px] h-[30px]">
+                        <button
+                          onClick={() =>
+                            setOpenVariant(
+                              openVariant === item.cartKey
+                                ? null
+                                : item.cartKey,
+                            )
+                          }
+                          className="flex items-center justify-between w-full h-full border px-2 text-xs rounded-none hover:border-black transition"
+                        >
+                          <span className="truncate">
+                            {[
+                              item.selectedColor,
+                              item.selectedSize,
+                              item.selectedType,
+                            ]
+                              .filter(Boolean)
+                              .join(", ") || "Chọn"}
+                          </span>
 
+                          <ChevronDown
+                            size={12}
+                            className={`ml-1 shrink-0 transition-transform ${
+                              openVariant === item.cartKey ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+                      </div>
                       {openVariant === item.cartKey && (
                         <div className="absolute right-0 z-50 mt-2 w-[345px] border  bg-white shadow-lg p-3">
                           <h1>Phân loại</h1>
@@ -357,6 +374,7 @@ export default function CartSidebar({
                     <div className="flex items-center">
                       <Button
                         variant="outline"
+                        disabled={item.quantity === 1} // 🔥 disable luôn
                         onClick={() => decreaseQuantity(item.cartKey)}
                         className="h-8 w-8 rounded-none border-[#171717] p-0"
                       >
@@ -434,7 +452,14 @@ export default function CartSidebar({
               disabled={selectedItems.length === 0}
               className="w-full h-14 rounded-none bg-black text-white hover:bg-black/80"
             >
-              THANH TOÁN
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{" "}
+                  Đang xử lý...
+                </>
+              ) : (
+                "THANH TOÁN"
+              )}{" "}
             </Button>
           </div>
         </div>

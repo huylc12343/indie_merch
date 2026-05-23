@@ -30,7 +30,9 @@ export default function CheckoutPage() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isPollingEnabled, setIsPollingEnabled] = useState(false);
-
+  const [checkoutSource, setCheckoutSource] = useState<"cart" | "buynow">(
+    "cart",
+  );
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -48,11 +50,41 @@ export default function CheckoutPage() {
   useEffect(() => {
     const loadCart = () => {
       try {
-        const data = localStorage.getItem("cart");
-        if (!data) return setCartItems([]);
+        // 🔥 1. Ưu tiên checkout_items (từ giỏ hàng)
+        const checkoutItems = localStorage.getItem("checkout_items");
 
-        const parsed = JSON.parse(data);
-        setCartItems(Array.isArray(parsed) ? parsed : []);
+        if (checkoutItems) {
+          const parsed = JSON.parse(checkoutItems);
+          setCartItems(Array.isArray(parsed) ? parsed : []);
+          setCheckoutSource("cart");
+
+          localStorage.removeItem("checkout_items"); // dùng 1 lần
+          return;
+        }
+
+        // 🔥 2. Sau đó mới tới buynow
+        const buyNowData = localStorage.getItem("buynow");
+
+        if (buyNowData) {
+          const parsed = JSON.parse(buyNowData);
+          setCartItems(Array.isArray(parsed) ? parsed : []);
+          setCheckoutSource("buynow");
+
+          localStorage.removeItem("buynow"); // 🔥 QUAN TRỌNG
+          return;
+        }
+
+        // 🔥 3. fallback cart
+        const cartData = localStorage.getItem("cart");
+
+        if (cartData) {
+          const parsed = JSON.parse(cartData);
+          setCartItems(Array.isArray(parsed) ? parsed : []);
+          setCheckoutSource("cart");
+          return;
+        }
+
+        setCartItems([]);
       } catch {
         setCartItems([]);
       }
@@ -61,7 +93,9 @@ export default function CheckoutPage() {
     loadCart();
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "cart") loadCart();
+      if (checkoutSource === "cart" && e.key === "cart") {
+        loadCart();
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -130,7 +164,10 @@ export default function CheckoutPage() {
     fullName,
     phone,
     email,
-    address: shippingMethod === "delivery" ? address : "Bụi dốc",
+    address:
+      shippingMethod === "delivery"
+        ? address
+        : "BỤI ROCK - P107, E5 Đặng Văn Ngữ, Kim Liên, Hà Nội",
     shippingFee: resolvedShippingFee,
     subtotal,
     showErrorToast,
@@ -161,7 +198,11 @@ export default function CheckoutPage() {
 
       setIsPollingEnabled(false);
 
-      localStorage.removeItem("cart");
+      if (checkoutSource === "buynow") {
+        localStorage.removeItem("buynow");
+      } else {
+        localStorage.removeItem("cart");
+      }
       setCartItems([]);
 
       setCurrentStep(3);
@@ -194,9 +235,9 @@ export default function CheckoutPage() {
   // ================= UI =================
   return (
     <div className="min-h-screen bg-[#2F2F2F]">
-      <section className="bg-[#171717] px-30 pt-[77px] pb-[140px]">
-        <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
-          <p className="font-retroguard text-[60px] text-white">THANH TOÁN</p>
+      <section className="bg-[#171717] px-4 md:px-30 pt-10 md:pt-[77px] pb-16 md:pb-[140px]">
+        <div className="flex flex-col gap-6 md:gap-10 lg:flex-row lg:justify-between">
+          <p className="font-retroguard text-[32px] md:text-[60px] text-white text-center">THANH TOÁN</p>
 
           <BookingStepper
             currentStep={currentStep}
@@ -205,8 +246,8 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      <section className="px-30">
-        <div className="relative z-10 -mt-[80px] flex gap-5">
+      <section className="px-4 md:px-30">
+        <div className="relative z-10 -mt-10 md:-mt-[80px] flex flex-col lg:flex-row gap-5">
           {currentStep === 1 ? (
             <MerchBookingForm
               shippingMethod={shippingMethod}
@@ -234,7 +275,11 @@ export default function CheckoutPage() {
               fullName={fullName}
               phone={phone}
               email={email}
-              address={shippingMethod === "delivery" ? address : "Bụi dốc"}
+              address={
+                shippingMethod === "delivery"
+                  ? address
+                  : "BỤI ROCK - P107, E5 Đặng Văn Ngữ, Kim Liên, Hà Nội"
+              }
               onEdit={handleEditPaymentInfo}
             />
           ) : (

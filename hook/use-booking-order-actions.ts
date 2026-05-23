@@ -149,6 +149,7 @@ export function useMerchOrderActions({
 
         order_items: cartItems.map((item) => ({
           merch_id: item.id,
+          merch_name: item.name, // ✅ thêm dòng này
           quantity: Number(item.quantity),
           unit_price: Number(item.price),
           subtotal: Number(item.price) * Number(item.quantity),

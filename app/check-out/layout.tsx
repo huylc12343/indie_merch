@@ -6,7 +6,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="bg-[#333333]">
       <CheckOutNavbar />
-      <div className="mt-[114px]">{children}</div>
+      <div className=" mt-[70px] md:mt-[114px]">{children}</div>
       <Footer />
     </div>
   );

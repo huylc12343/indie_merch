@@ -59,7 +59,7 @@ export default function BookingForm({
     <>
       <div className="flex flex-col flex-1 pb-20">
         <section className="border-2 border-white bg-[#333333] px-5 py-6">
-          <h2 className="font-retroguard text-3xl uppercase text-white lg:text-[32px] lg:leading-[48px]">
+          <h2 className="font-retroguard text-xl md:text-2xl lg:text-[32px] uppercase text-white lg:leading-[48px]">
             1. NHẬP MÃ GIẢM GIÁ (NẾU CÓ)
           </h2>
 
@@ -92,7 +92,7 @@ export default function BookingForm({
             </div>
           ) : (
             <div className="mt-5 flex flex-col gap-2">
-              <div className="flex flex-col gap-4 lg:flex-row">
+              <div className="flex flex-col gap-3 lg:flex-row">
                 <Input
                   autoComplete="off"
                   value={discountCode}
@@ -104,7 +104,7 @@ export default function BookingForm({
                   }}
                   name="discount-code"
                   placeholder="Nhập mã giảm giá ở đây..."
-                  className="h-14 rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0"
+                  className="h-14 w-full rounded-none border-0 bg-[#171717] px-5 text-base text-white placeholder:text-[#A3A3A3] focus-visible:ring-0"
                 />
 
                 <Button
@@ -112,7 +112,7 @@ export default function BookingForm({
                   disabled={!discountCode.trim() || isApplyingDiscount}
                   onClick={onApplyDiscount}
                   variant="outline"
-                  className="h-14 rounded-none border-2 border-[#FF017E] bg-transparent px-6 text-base font-semibold text-[#FF017E] hover:bg-[#FF017E]/10 disabled:opacity-50"
+                  className="h-14 w-full lg:w-auto rounded-none border-2 border-[#FF017E] bg-transparent px-6 text-base font-semibold text-[#FF017E] hover:bg-[#FF017E]/10 disabled:opacity-50"
                 >
                   {isApplyingDiscount ? "ĐANG KIỂM TRA..." : "ÁP DỤNG"}
                 </Button>
@@ -122,7 +122,7 @@ export default function BookingForm({
         </section>
 
         <section className="border-2 border-white bg-[#333333] mt-6 px-5 py-6">
-          <h2 className="font-retroguard text-3xl uppercase text-white lg:text-[32px] lg:leading-[48px]">
+          <h2 className="font-retroguard text-xl md:text-2xl lg:text-[32px] uppercase text-white lg:leading-[48px]">
             2. THÔNG TIN CÁ NHÂN
           </h2>
           <p className="mt-2 text-base leading-6 text-[#A3A3A3]">
@@ -201,7 +201,7 @@ export default function BookingForm({
           </div>
         </section>
         <section className="flex-1 border-2 border-white bg-[#333333] mt-6 px-5 py-6">
-          <h2 className="font-retroguard text-3xl uppercase text-white lg:text-[32px] lg:leading-[48px]">
+          <h2 className="font-retroguard text-xl md:text-2xl lg:text-[32px] uppercase text-white lg:leading-[48px]">
             3. HÌNH THỨC NHẬN HÀNG
           </h2>
 
@@ -224,7 +224,7 @@ export default function BookingForm({
                   <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                     {/* LEFT */}
                     <div className="flex-1">
-                      <p className="text-2xl font-semibold text-white">
+                      <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white ">
                         Ship tận nhà (Nhận hàng sau 3 ngày)
                       </p>
 
@@ -286,7 +286,7 @@ export default function BookingForm({
                   <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                     {/* LEFT */}
                     <div className="flex-1">
-                      <p className="text-2xl font-semibold text-white">
+                      <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
                         Nhận hàng trực tiếp tại Bụi Rock (Nhận hàng sau 5 ngày)
                       </p>
 

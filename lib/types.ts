@@ -42,7 +42,13 @@ export interface CartItem {
 
   availableTypes?: string[];
 }
-
+export const PAYMENT_STATUS_TEXT: Record<string, string> = {
+  init: "Đang chờ thanh toán",
+  in_progress: "Đang chờ thanh toán",
+  done: "Thanh toán thành công",
+  drop: "Đã hủy",
+  cancel: "Đã hủy",
+};
 export const EVENT_STATUS = {
   DRAFT: "draft",
   PUBLISHED: "published",

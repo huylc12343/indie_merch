@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-
+import { Toaster } from "react-hot-toast";
 import Footer from "@/components/footer/Footer";
 import Navbar from "@/components/navbar/Navbar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,7 +14,6 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -32,7 +32,23 @@ export default function RootLayout({
   return (
     <div className="min-h-full flex flex-col font-sans">
       <Navbar />
-      <div className="mt-[114px]">{children}</div>
+      {/* mobile: ~62px, tablet: ~74px, desktop: ~114px */}
+      <div className="mt-[62px] sm:mt-[74px] md:mt-[114px]">{children}</div>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            border: "2px solid #f3f3f3",
+            padding: "16px 20px",
+            fontSize: "18px",
+            fontWeight: "600",
+            background: "#fff",
+            color: "#171717",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+          },
+        }}
+      />
       <Footer />
     </div>
   );

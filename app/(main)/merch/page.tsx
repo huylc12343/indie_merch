@@ -92,17 +92,17 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   return (
     <div className="w-full">
-      <div className="max-w-[1440px] mx-auto px-10 xl:px-20 py-15">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8 xl:px-20 py-10 xl:py-15">
         <div className="flex-col  ">
-          <div className="flex w-full gap-16 justify-between">
+          <div className="flex flex-col xl:flex-row w-full gap-10 xl:gap-16">
             {/* LEFT */}
-            <div className="w-full max-w-[620px] sticky top-[174px] self-start">
+            <div className="w-full xl:max-w-[620px] xl:sticky xl:top-[174px] self-start">
               <div className="flex flex-col justify-start">
-                <h1 className="font-retroguard text-8xl leading-[0.8]">
+                <h1 className="font-retroguard text-5xl md:text-7xl xl:text-8xl leading-[0.8]">
                   MERCHANDISE
                 </h1>
 
-                <p className="mt-8 text-2xl leading-7">
+                <p className="mt-8 text-lg md:text-xl xl:text-2xl leading-7">
                   Khám phá các sản phẩm merch được thiết kế độc quyền, tất cả
                   đều được chăm chút để bạn không chỉ dùng, mà còn{" "}
                   <span className="font-bold">cảm</span> được.
@@ -119,8 +119,8 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="flex-col w-full mt-40">
-            <h1 className="font-retroguard text-6xl leading-[0.6] tracking-normal font-normal ">
+          <div className="flex flex-col w-full mt-20 xl:mt-40">
+            <h1 className="font-retroguard text-3xl md:text-5xl xl:text-6xl leading-[0.6] tracking-normal font-normal ">
               điều khoản giao hàng & đổi trả hàng
             </h1>
             <ul className=" mt-8 text-xl leading-7 max-w-[847px] list-disc pl-8">

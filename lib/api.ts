@@ -65,6 +65,7 @@ type CreateOrderItemPayload = {
 };
 type CreateMerchOrderItemPayload = {
   merch_id: string;
+  merch_name: string; // ✅ thêm dòng này
   quantity: number;
   unit_price: number;
   subtotal: number;

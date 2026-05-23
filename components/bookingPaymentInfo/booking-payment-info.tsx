@@ -1,3 +1,4 @@
+import { Pencil } from "lucide-react";
 type BookingPaymentInfoProps = {
   fullName: string;
   phone: string;
@@ -17,16 +18,17 @@ export function BookingPaymentInfo({
     <div className="flex flex-col flex-1 pb-20">
       <section className="flex flex-col wrap-content border-2 border-white bg-[#333333] px-5 py-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-retroguard text-3xl uppercase text-white md:text-[32px] md:leading-[48px]">
+          <h2 className="font-retroguard text-3xl uppercase text-white text-xl md:text-2xl lg:text-[32px] md:leading-[48px]">
             THÔNG TIN THANH TOÁN
           </h2>
           <button
-          type="button"
-          onClick={onEdit}
-          className="text-base font-semibold text-[#5073CF] hover:underline"
-        >
-          CHỈNH SỬA THÔNG TIN
-        </button>
+            type="button"
+            onClick={onEdit}
+            className="p-2 text-[#5073CF] hover:bg-white/10 rounded-sm transition"
+            aria-label="Chỉnh sửa thông tin"
+          >
+            <Pencil className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="mt-5 space-y-3 text-base leading-6 text-white">
