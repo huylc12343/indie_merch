@@ -7,12 +7,13 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json({ data: [] });
+    return NextResponse.json({ data: null });
   }
+
   const normalizedCode = code.trim().toLowerCase();
 
   const response = await fetch(
-    `${baseUrl}/items/discount_codes?filter[code][_eq]=${encodeURIComponent(normalizedCode)}&filter[status][_eq]=available&fields=*`,
+    `${baseUrl}/items/discount_codes?filter[code][_eq]=${encodeURIComponent(normalizedCode)}&fields=*`,
     {
       headers: {
         Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}`,
@@ -28,19 +29,29 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const payload = (await response.json()) as {
-    data?: Record<string, unknown>[];
-  };
+  const payload = await response.json();
 
-  const transformed = (payload.data ?? []).map((item) => ({
+  const item = payload.data?.[0];
+
+  // ❌ Không tồn tại
+  if (!item) {
+    return NextResponse.json({ error: "NOT_FOUND" });
+  }
+
+  // ❌ Hết hạn / không available
+  const validStatuses = ["available", "active"];
+  if (!validStatuses.includes(item.status)) {
+    return NextResponse.json({ error: "EXPIRED" });
+  }
+  const transformed = {
     ...item,
-    id: crypto.randomUUID(), // id number → UUID
-    value: Number(item.value), // "10000.00000" → 10000
-    min_order_value: Number(item.min_order_value ?? 0), // null → 0
-    used_count: Number(item.used_count ?? 0), // null → 0
-    status: "active", // "available" → "active"
-    event_id: null, // "1" không phải UUID → null
-  }));
+    id: crypto.randomUUID(),
+    value: Number(item.value),
+    min_order_value: Number(item.min_order_value ?? 150000), // 🔥 default 150k
+    used_count: Number(item.used_count ?? 0),
+    status: "active",
+    event_id: null,
+  };
 
   return NextResponse.json({ data: transformed });
 }

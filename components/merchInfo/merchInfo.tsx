@@ -148,7 +148,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
     flex flex-col
   "
           >
-            <div className="sticky top-0 z-10 bg-white flex justify-between items-center p-4 lg:p-8 border-b">
+            <div className="sticky top-0 z-10 bg-white flex justify-between items-center p-4 lg:p-8 border-b md:border-none">
               <h1 className="font-retroguard text-[28px]">Chi tiết</h1>
               <Button
                 variant="ghost"

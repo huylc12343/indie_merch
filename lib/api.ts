@@ -13,7 +13,7 @@ import {
 export async function checkDiscountCode(
   code: string,
 ): Promise<DiscountCodeOutput | null> {
-  const trimmedCode = code.trim().toUpperCase();
+  const trimmedCode = code.trim().toLowerCase();
   if (!trimmedCode) return null;
 
   const response = await fetch(
@@ -25,8 +25,11 @@ export async function checkDiscountCode(
     throw new Error(`Failed to check discount code: HTTP ${response.status}`);
   }
 
-  const payload = (await response.json()) as { data?: unknown[] };
-  return payload.data?.[0] ? parse(discountCodeSchema, payload.data[0]) : null;
+  const payload = await response.json();
+
+  if (!payload.data) return null;
+
+  return parse(discountCodeSchema, payload.data);
 }
 export type CreateOrderResponse = {
   id: string;
@@ -100,6 +103,7 @@ export type CreateMerchOrderPayload = {
   payment_method?: PaymentMethod;
   subtotal: number;
   discount_combo: number;
+  discount_code?: string;
   discount_code_id?: string;
   discount_code_amount: number;
   shipping_fee: number;

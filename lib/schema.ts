@@ -88,7 +88,7 @@ const discountTierCoreSchema = v.object({
 
 const discountCodeCoreSchema = v.object({
   id: uuidSchema,
-  code: v.pipe(v.string(), v.minLength(1), v.toUpperCase()),
+  code: v.pipe(v.string(), v.minLength(1)),
   type: v.picklist([DISCOUNT_CODE_TYPE.FIXED, DISCOUNT_CODE_TYPE.PERCENTAGE]),
   value: v.pipe(v.number(), v.minValue(0)),
   min_order_value: v.pipe(v.number(), v.minValue(0)),

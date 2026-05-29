@@ -180,7 +180,7 @@ export default function CartSidebar({
         className={`fixed top-0 right-0 h-full  w-full md:w-[500px] bg-white z-50 transition-transform duration-300
         ${open ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex flex-col h-full p-8">
+        <div className="flex flex-col h-full p-4 md:p-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2>
@@ -206,7 +206,7 @@ export default function CartSidebar({
             )}
 
             {cartItems.map((item) => (
-              <div key={item.cartKey} className="flex gap-4 items-center">
+              <div key={item.cartKey} className="flex gap-4 items-center max-w-[358px] md:max-w-none">
                 <button
                   onClick={() => toggleSelectItem(item.cartKey)}
                   className={`w-5 h-5 border flex items-center justify-center transition-all rounded-sm
@@ -232,8 +232,8 @@ export default function CartSidebar({
                   <h4 className="font-medium text-sm md:text-2xl">
                     {item.name}
                   </h4>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className="text-[var(--color-primary-pink)] text-xl md:text-3xl font-normal ">
+                  <div className="flex justify-between items-center mt-1 gap-2 max-w-[209px] md:max-w-none">
+                    <p className="text-[var(--color-primary-pink)] text-xl md:text-2xl font-normal leading-[26px]">
                       {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                     </p>
                     {/* variants */}

@@ -38,9 +38,9 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [discountCode, setDiscountCode] = useState("");
-  const [shippingMethod, setShippingMethod] = useState<"pickup" | "delivery">(
-    "pickup",
-  );
+  const [shippingMethod, setShippingMethod] = useState<
+    "pickup_store" | "pickup_event" | "delivery"
+  >("pickup_store");
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
   }, [cartItems]);
 
   // ================= SHIPPING =================
-  const resolvedShippingFee = shippingMethod === "pickup" ? 0 : shippingFee;
+  const resolvedShippingFee = shippingMethod === "delivery" ? shippingFee : 0;
 
   useEffect(() => {
     if (shippingMethod !== "delivery") return;
@@ -118,10 +118,9 @@ export default function CheckoutPage() {
   }, [address, subtotal, shippingMethod, calculateFee]);
 
   const handleShippingMethodChange = useCallback(
-    (value: "pickup" | "delivery") => {
+    (value: "pickup_store" | "pickup_event" | "delivery") => {
       setShippingMethod(value);
-
-      if (value === "pickup") {
+      if (value !== "delivery") {
         calculateFee("", 0);
       } else if (address) {
         calculateFee(address, subtotal);
@@ -139,7 +138,13 @@ export default function CheckoutPage() {
     },
     [shippingMethod, subtotal, calculateFee],
   );
-
+  const resolvedAddress = useMemo(() => {
+    if (shippingMethod === "pickup_store")
+      return "BỤI ROCK - E5, đường P. Đặng Văn Ngữ, Kim Liên, Hà Nội 120638, Việt Nam";
+    if (shippingMethod === "pickup_event")
+      return "Cổng Nối - số 2 Trịnh Công Sơn, Tây Hồ, Hà Nội";
+    return address; // delivery → địa chỉ khách nhập
+  }, [shippingMethod, address]);
   const showErrorToast = useCallback((msg: string) => {
     toast.error(msg);
   }, []);
@@ -158,16 +163,14 @@ export default function CheckoutPage() {
     paymentBankName,
     validateForm,
     errors,
+    discountError,
   } = useMerchOrderActions({
     cartItems,
     discountCode,
     fullName,
     phone,
     email,
-    address:
-      shippingMethod === "delivery"
-        ? address
-        : "BỤI ROCK - P107, E5 Đặng Văn Ngữ, Kim Liên, Hà Nội",
+    address: resolvedAddress,
     shippingFee: resolvedShippingFee,
     subtotal,
     showErrorToast,
@@ -237,7 +240,9 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#2F2F2F]">
       <section className="bg-[#171717] px-4 md:px-30 pt-10 md:pt-[77px] pb-16 md:pb-[140px]">
         <div className="flex flex-col gap-6 md:gap-10 lg:flex-row lg:justify-between">
-          <p className="font-retroguard text-[32px] md:text-[60px] text-white text-center">THANH TOÁN</p>
+          <p className="font-retroguard text-[32px] md:text-[60px] text-white text-center">
+            THANH TOÁN
+          </p>
 
           <BookingStepper
             currentStep={currentStep}
@@ -268,6 +273,7 @@ export default function CheckoutPage() {
               setDiscountCode={setDiscountCode}
               onApplyDiscount={handleApplyDiscount}
               onClearDiscount={handleClearDiscount}
+              discountError={discountError}
               errors={errors}
             />
           ) : currentStep === 2 ? (
@@ -275,11 +281,7 @@ export default function CheckoutPage() {
               fullName={fullName}
               phone={phone}
               email={email}
-              address={
-                shippingMethod === "delivery"
-                  ? address
-                  : "BỤI ROCK - P107, E5 Đặng Văn Ngữ, Kim Liên, Hà Nội"
-              }
+              address={resolvedAddress}
               onEdit={handleEditPaymentInfo}
             />
           ) : (

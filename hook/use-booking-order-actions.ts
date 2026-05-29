@@ -52,6 +52,7 @@ export function useMerchOrderActions({
   const updateCreatedOrder = useCallback((order: CreateMerchOrderResponse) => {
     setCreatedOrder(order);
   }, []);
+  const [discountError, setDiscountError] = useState<string | null>(null);
 
   const [paymentBankName, setPaymentBankName] = useState<string | null>(null);
   const resolvedDiscountCodeAmount = useMemo(() => {
@@ -68,32 +69,35 @@ export function useMerchOrderActions({
 
   const handleApplyDiscount = useCallback(async () => {
     setIsApplyingDiscount(true);
+    setDiscountError(null); // reset mỗi lần thử
     try {
       const found = await checkDiscountCode(discountCode);
       if (!found) {
-        showErrorToast("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+        setDiscountError("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
         return;
       }
       if (subtotal < found.min_order_value) {
-        showErrorToast(
-          `Đơn hàng tối thiểu ${new Intl.NumberFormat("vi-VN").format(found.min_order_value)} đ để áp dụng mã này.`,
+        setDiscountError(
+          `Chỉ áp dụng cho đơn hàng từ ${new Intl.NumberFormat("vi-VN").format(found.min_order_value)}đ trở lên.`,
         );
+        setIsApplyingDiscount(false);
         return;
       }
       if (found.max_uses !== null && found.used_count >= found.max_uses) {
-        showErrorToast("Mã giảm giá đã hết lượt sử dụng.");
+        setDiscountError("Mã giảm giá đã hết lượt sử dụng.");
         return;
       }
       setAppliedDiscount(found);
     } catch {
-      showErrorToast("Không thể kiểm tra mã giảm giá, vui lòng thử lại.");
+      setDiscountError("Không thể kiểm tra mã giảm giá, vui lòng thử lại.");
     } finally {
       setIsApplyingDiscount(false);
     }
-  }, [discountCode, showErrorToast, subtotal]);
+  }, [discountCode, subtotal]);
 
   const handleClearDiscount = useCallback(() => {
     setAppliedDiscount(null);
+    setDiscountError(null); // xóa lỗi khi clear
   }, []);
 
   const handleCreateOrder = useCallback(async () => {
@@ -139,7 +143,7 @@ export function useMerchOrderActions({
         subtotal: orderItemSubtotal,
 
         discount_combo: 0,
-
+        discount_code: appliedDiscount?.code || "",
         discount_code_id: appliedDiscount?.code ?? "", // ✅ đổi từ discount_code_id
 
         discount_code_amount: resolvedDiscountCodeAmount,
@@ -239,5 +243,6 @@ export function useMerchOrderActions({
     createdOrder,
     updateCreatedOrder,
     paymentBankName,
+    discountError,
   };
 }
