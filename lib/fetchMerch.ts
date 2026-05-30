@@ -7,7 +7,7 @@ export async function fetchMerch(): Promise<MerchItem[]> {
   console.log("BASE URL:", baseUrl);
 
   const res = await fetch(
-    `${baseUrl}/items/merch?fields=*,merch_images.directus_files_id.*`,
+    `${baseUrl}/items/merchs?fields=*,merch_images.directus_files_id.*`,
     {
       headers: { Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}` },
       cache: "no-store",
