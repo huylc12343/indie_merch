@@ -44,7 +44,8 @@ export default function CheckoutPage() {
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const { shippingFee, isCalculating, calculateFee } = useShippingFee();
+  const { shippingFee, isCalculating, calculateFee, shippingError } =
+    useShippingFee();
 
   // ================= LOAD CART =================
   useEffect(() => {
@@ -109,13 +110,6 @@ export default function CheckoutPage() {
 
   // ================= SHIPPING =================
   const resolvedShippingFee = shippingMethod === "delivery" ? shippingFee : 0;
-
-  useEffect(() => {
-    if (shippingMethod !== "delivery") return;
-    if (!address || address.length < 15) return;
-
-    calculateFee(address, subtotal);
-  }, [address, subtotal, shippingMethod, calculateFee]);
 
   const handleShippingMethodChange = useCallback(
     (value: "pickup_store" | "pickup_event" | "delivery") => {
@@ -237,7 +231,7 @@ export default function CheckoutPage() {
 
   // ================= UI =================
   return (
-    <div className="min-h-screen bg-[#2F2F2F]">
+    <div className="min-h-screen bg-[#2F2F2F] pb-20">
       <section className="bg-[#171717] px-4 md:px-30 pt-10 md:pt-[77px] pb-16 md:pb-[140px]">
         <div className="flex flex-col gap-6 md:gap-10 lg:flex-row lg:justify-between">
           <p className="font-retroguard text-[32px] md:text-[60px] text-white text-center">
@@ -251,7 +245,7 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      <section className="px-4 md:px-30">
+      <section className="px-4 md:px-30 ">
         <div className="relative z-10 -mt-10 md:-mt-[80px] flex flex-col lg:flex-row gap-5">
           {currentStep === 1 ? (
             <MerchBookingForm
@@ -267,6 +261,7 @@ export default function CheckoutPage() {
               isApplyingDiscount={isApplyingDiscount}
               setFullName={setFullName}
               setPhone={setPhone}
+              shippingError={shippingError}
               setEmail={setEmail}
               setAddress={handleAddressChange}
               isCalculatingShipping={isCalculating}
@@ -298,10 +293,15 @@ export default function CheckoutPage() {
             actionLabel={currentStep === 1 ? "Tiếp tục" : "Thanh toán"}
             showActionButton={currentStep !== 3}
             showPolicyNote={currentStep === 2}
+            actionDisabled={
+              currentStep === 1 &&
+              shippingMethod === "delivery" &&
+              (isCalculating || shippingFee === 0 || !!shippingError)
+            }
             onActionClick={
               currentStep === 1
                 ? () => {
-                    if (!validateForm()) return; // 🔥 chặn nếu sai
+                    if (!validateForm()) return;
                     setCurrentStep(2);
                   }
                 : currentStep === 2

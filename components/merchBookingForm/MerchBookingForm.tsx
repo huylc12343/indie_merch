@@ -19,7 +19,7 @@ type BookingFormProps = {
   isCalculatingShipping?: boolean;
   onApplyDiscount?: () => void;
   onClearDiscount?: () => void;
-
+  shippingError?: string | null;
   onShippingMethodChange: (
     value: "pickup_store" | "pickup_event" | "delivery",
   ) => void;
@@ -57,6 +57,7 @@ export default function BookingForm({
   setPhone,
   setEmail,
   setAddress,
+  shippingError,
   setDiscountCode,
 }: BookingFormProps) {
   return (
@@ -217,117 +218,110 @@ export default function BookingForm({
             onValueChange={onShippingMethodChange}
             className="mt-5 w-full gap-4"
           >
-            <div className="flex w-full items-start gap-4 bg-[#171717] p-4">
+            <label
+              htmlFor="pickup_store"
+              className="flex w-full items-start gap-4 bg-[#171717] p-4 cursor-pointer"
+            >
               {/* RADIO */}
               <RadioGroupItem
                 value="pickup_store"
                 id="pickup_store"
-                className="h-6 w-6 size-4 border-[#6C6C6C] bg-[#333333] data-checked:border-[#6C6C6C] data-checked:bg-[#333333] disabled:cursor-not-allowed"
+                className="mt-1 h-5 w-5 border-[#6C6C6C] bg-[#333333] 
+               data-checked:border-[#6C6C6C] 
+               data-checked:bg-[#333333]"
               />
 
               {/* CONTENT */}
-              <label htmlFor="pickup_store" className="w-full cursor-pointer">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                    {/* LEFT */}
-                    <div className="flex-1">
-                      <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
-                        Nhận hàng trực tiếp tại Bụi Rock (Nhận hàng sau 5 ngày)
-                      </p>
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                  {/* LEFT */}
+                  <div className="flex-1">
+                    <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
+                      Nhận trực tiếp tại Bụi Rock
+                    </p>
 
-                      <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
-                        <li>Giao hàng tận nơi qua đường bưu điện</li>
-
-                        <li>Thời gian giao hàng dự kiến: 7-10 ngày làm việc</li>
-
-                        <li>Phí vận chuyển: 30.000đ/vé</li>
-                      </ul>
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="flex flex-col items-end gap-2 text-right">
-                      {/* <p className="text-lg leading-7 text-[#60CAA4]">
-                        100.000 VND
-                      </p> */}
-                    </div>
+                    <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
+                      <li>
+                        Nhận tại Bụi Rock địa chỉ: E5, đường P. Đặng Văn Ngữ,
+                        Kim Liên, Hà Nội
+                      </li>
+                      <li>Thời gian giao hàng dự kiến: 7-10 ngày làm việc</li>
+                      <li>
+                        Hướng dẫn nhận merch chi tiết sẽ được thông báo qua
+                        fanpage và mail
+                      </li>
+                    </ul>
                   </div>
                 </div>
-              </label>
-            </div>
-            <div className="flex w-full items-start gap-4 bg-[#171717] p-4">
+              </div>
+            </label>
+            <label
+              htmlFor="pickup_event"
+              className="flex w-full items-start gap-4 bg-[#171717] p-4 cursor-pointer"
+            >
               {/* RADIO */}
               <RadioGroupItem
                 value="pickup_event"
                 id="pickup_event"
-                className="h-6 w-6 size-4 border-[#6C6C6C] bg-[#333333] data-checked:border-[#6C6C6C] data-checked:bg-[#333333] disabled:cursor-not-allowed"
+                className="mt-1 h-5 w-5 border-[#6C6C6C] bg-[#333333] 
+               data-checked:border-[#6C6C6C] 
+               data-checked:bg-[#333333]"
               />
 
               {/* CONTENT */}
-              <label htmlFor="pickup_event" className="w-full cursor-pointer">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                    {/* LEFT */}
-                    <div className="flex-1">
-                      <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
-                        offline tại show (Nhận hàng sau 5 ngày)
-                      </p>
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                  {/* LEFT */}
+                  <div className="flex-1">
+                    <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
+                      Nhận trực tiếp tại In-đỉ In-đi:
+                    </p>
 
-                      <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
-                        <li>Giao hàng tận nơi qua đường bưu điện</li>
-
-                        <li>Thời gian giao hàng dự kiến: 7-10 ngày làm việc</li>
-
-                        <li>Phí vận chuyển: 30.000đ/vé</li>
-                      </ul>
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="flex flex-col items-end gap-2 text-right">
-                      {/* <p className="text-lg leading-7 text-[#60CAA4]">
-                        100.000 VND
-                      </p> */}
-                    </div>
+                    <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
+                      <li>Nhận tại địa điểm tổ chức In-đỉ In-đi ngày 20/6</li>
+                      <li>
+                        Hướng dẫn nhận merch chi tiết sẽ được thông báo qua
+                        fanpage và mail
+                      </li>
+                    </ul>
                   </div>
                 </div>
-              </label>
-            </div>
-            <div className="flex w-full items-start gap-4 bg-[#171717] p-4">
+              </div>
+            </label>
+            <label
+              htmlFor="delivery"
+              className="flex w-full items-start gap-4 bg-[#171717] p-4 cursor-pointer"
+            >
               {/* RADIO */}
               <RadioGroupItem
                 value="delivery"
                 id="delivery"
-                className="h-6 w-6 size-4 border-[#6C6C6C] bg-[#333333] data-checked:border-[#6C6C6C] data-checked:bg-[#333333] disabled:cursor-not-allowed "
+                className="mt-1 h-5 w-5 border-[#6C6C6C] bg-[#333333] 
+               data-checked:border-[#6C6C6C] 
+               data-checked:bg-[#333333]"
               />
 
               {/* CONTENT */}
-              <label htmlFor="delivery" className="w-full cursor-pointer ">
-                <div className="flex flex-col gap-4 ">
-                  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                    {/* LEFT */}
-                    <div className="flex-1">
-                      <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white ">
-                        Ship tận nhà (Nhận hàng sau 3 ngày)
-                      </p>
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                  {/* LEFT */}
+                  <div className="flex-1">
+                    <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
+                      Nhận qua ship
+                    </p>
 
-                      <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
-                        <li>Giao hàng tận nơi qua đường bưu điện</li>
-
-                        <li>Thời gian giao hàng dự kiến: 7-10 ngày làm việc</li>
-
-                        <li>Phí vận chuyển: 30.000đ/vé</li>
-                      </ul>
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="flex flex-col items-end gap-2 text-right">
-                      {/* <p className="text-lg leading-7 text-[#60CAA4]">
-                        36.000 VND
-                      </p> */}
-                    </div>
+                    <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
+                      <li>Nhận merch tại địa chỉ bạn điền trong form</li>
+                      <li>
+                        Hướng dẫn nhận merch chi tiết sẽ được thông báo qua
+                        fanpage và mail
+                      </li>
+                    </ul>
                   </div>
                 </div>
-              </label>
-            </div>
+              </div>
+            </label>
+
             {/* chỉ hiện khi chọn delivery */}
             {shippingMethod === "delivery" && (
               <div className=" text-white text-lg bg-[#171717] p-4 pt-0 mt-[-20px] ">
@@ -343,12 +337,14 @@ export default function BookingForm({
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, quận, tỉnh)"
                 />
-                {errors?.address && (
-                  <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-                )}
                 {isCalculatingShipping && (
                   <p className="text-sm text-[#A3A3A3] mt-1">
                     Đang tính phí vận chuyển...
+                  </p>
+                )}
+                {(errors?.address || shippingError) && (
+                  <p className="text-red-500 text-xl mt-1">
+                    {errors?.address || shippingError}
                   </p>
                 )}
               </div>

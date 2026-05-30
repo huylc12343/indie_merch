@@ -255,13 +255,12 @@ export async function calculateShippingFee(
     cache: "no-store",
   });
 
-  if (!response.ok) {
-    throw new Error(
-      `Failed to calculate shipping fee: HTTP ${response.status}`,
-    );
-  }
+  const data = await response.json();
 
-  return await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Không tính được phí vận chuyển");
+  }
+  return data;
 }
 
 export async function confirmPayment(orderId: string, transferContent: string) {

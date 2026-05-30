@@ -53,7 +53,7 @@ export function useMerchOrderActions({
     setCreatedOrder(order);
   }, []);
   const [discountError, setDiscountError] = useState<string | null>(null);
-
+  const [shippingError, setShippingError] = useState<string | null>(null);
   const [paymentBankName, setPaymentBankName] = useState<string | null>(null);
   const resolvedDiscountCodeAmount = useMemo(() => {
     if (!appliedDiscount) return 0;
@@ -240,6 +240,7 @@ export function useMerchOrderActions({
     resolvedDiscountCodeAmount,
     validateForm,
     errors,
+    setShippingError,
     createdOrder,
     updateCreatedOrder,
     paymentBankName,

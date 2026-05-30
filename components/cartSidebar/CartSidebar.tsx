@@ -237,6 +237,9 @@ export default function CartSidebar({
                       {new Intl.NumberFormat("vi-VN").format(item.price)} đ
                     </p>
                     {/* variants */}
+                    {(item.availableColors ||
+                      item.availableSizes ||
+                      item.availableTypes) && (
                     <div className="relative">
                       <div className="flex items-center w-[80px] h-[30px]">
                         <button
@@ -368,6 +371,7 @@ export default function CartSidebar({
                         </div>
                       )}
                     </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-4 py-2 rounded-md w-full">
                     {/* quantity */}

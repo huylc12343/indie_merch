@@ -1,6 +1,6 @@
 import { MerchItem } from "../lib/types";
 
-const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL;
+const baseUrl = process.env.DIRECTUS_URL;
 
 export async function fetchMerch(): Promise<MerchItem[]> {
   if (!baseUrl) throw new Error("Missing NEXT_PUBLIC_DIRECTUS_URL");
