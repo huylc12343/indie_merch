@@ -1,7 +1,6 @@
 import sample from "@/app/img_sample.png";
 import { fetchMerch } from "@/lib/fetchMerch";
 import MerchInfo from "@/components/merchInfo/merchInfo";
-const merchData = await fetchMerch();
 export const dynamic = "force-dynamic";
 
 // const merchData = [
@@ -89,7 +88,9 @@ export const dynamic = "force-dynamic";
 //       "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ducimus veritatis nihil asperiores iure itaque quas minus nostrum reprehenderit mollitia amet? Omnis beatae consectetur officiis. Deleniti provident minima dolores repudiandae maiores.",
 //   },
 // ];
-export default function Home() {
+export default async function Home() {
+  const merchData = await fetchMerch();
+
   return (
     <div className="w-full">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 xl:px-20 py-10 xl:py-15">
