@@ -242,10 +242,10 @@ export default function BookingForm({
 
                     <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-7 text-white">
                       <li>
-                        Nhận tại Bụi Rock địa chỉ: E5, đường P. Đặng Văn Ngữ,
-                        Kim Liên, Hà Nội
+                        Nhận tại Bụi Rock địa chỉ: Bụi Rock - 107 E5 Đặng Văn
+                        Ngữ, Kim Liên, Hà Nội
                       </li>
-                      <li>Thời gian giao hàng dự kiến: 7-10 ngày làm việc</li>
+                      <li>Thời gian hoạt động: 10h-22h</li>
                       <li>
                         Hướng dẫn nhận merch chi tiết sẽ được thông báo qua
                         fanpage và mail

@@ -126,9 +126,6 @@ export default function CheckoutPage() {
   const handleAddressChange = useCallback(
     (value: string) => {
       setAddress(value);
-      if (shippingMethod === "delivery") {
-        calculateFee(value, subtotal);
-      }
     },
     [shippingMethod, subtotal, calculateFee],
   );
@@ -293,11 +290,7 @@ export default function CheckoutPage() {
             actionLabel={currentStep === 1 ? "Tiếp tục" : "Thanh toán"}
             showActionButton={currentStep !== 3}
             showPolicyNote={currentStep === 2}
-            actionDisabled={
-              currentStep === 1 &&
-              shippingMethod === "delivery" &&
-              (isCalculating || shippingFee === 0 || !!shippingError)
-            }
+            actionDisabled={false}
             onActionClick={
               currentStep === 1
                 ? () => {
