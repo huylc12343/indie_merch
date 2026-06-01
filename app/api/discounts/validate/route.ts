@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: null });
   }
 
-  const normalizedCode = code.trim().toLowerCase();
+  const normalizedCode = code.trim().toUpperCase();
 
   const response = await fetch(
     `${baseUrl}/items/discount_codes?filter[code][_eq]=${encodeURIComponent(normalizedCode)}&fields=*`,
