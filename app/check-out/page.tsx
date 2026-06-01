@@ -109,7 +109,7 @@ export default function CheckoutPage() {
   }, [cartItems]);
 
   // ================= SHIPPING =================
-  const resolvedShippingFee = shippingMethod === "delivery" ? shippingFee : 0;
+  const resolvedShippingFee = shippingMethod === "delivery" ? 30000 : 0;
 
   const handleShippingMethodChange = useCallback(
     (value: "pickup_store" | "pickup_event" | "delivery") => {
