@@ -163,12 +163,16 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
               </Button>
             </div>
             <div
-              className="  flex-1 
-  flex flex-col lg:flex-row 
-  mx-4 lg:mx-8 mb-6 lg:mb-10 gap-6
-  max-h-[80vh] md:max-h-[600px] overflow-y-auto md:overflow-y-hidden pt-15 md:pt-0"
+              className="
+    flex-1 
+    flex flex-col lg:flex-row 
+    mx-4 lg:mx-8 mb-6 lg:mb-10 gap-6
+    max-h-[80vh] 
+    overflow-y-auto 
+    lg:overflow-hidden
+  "
             >
-              <div className="flex flex-col w-full lg:max-w-[452px] md:max-h-[600px] mt-4">
+              <div className="flex flex-col w-full lg:max-w-[452px] mt-18 md:mt-4">
                 <Image
                   src={getImageUrl(selectedImageId || "./")}
                   width={460}
@@ -201,7 +205,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                   })}
                 </div>
               </div>
-              <div className="flex flex-col md:max-w-[452px] md:min-w-[452px] md:max-h-[600px] justify-between overflow-x-hidden md:overflow-y-auto max-h-full">
+              <div className="flex flex-col lg:max-w-[452px] lg:min-w-[452px] lg:max-h-[600px] justify-between lg:overflow-y-auto">
                 <div className="flex flex-col">
                   <span className="font-retroguard text-[50px] leading-[60px] -tracking-normal font-normal">
                     {item.name}
