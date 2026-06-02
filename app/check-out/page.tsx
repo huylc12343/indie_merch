@@ -131,7 +131,7 @@ export default function CheckoutPage() {
   );
   const resolvedAddress = useMemo(() => {
     if (shippingMethod === "pickup_store")
-      return "BỤI ROCK - E5, đường P. Đặng Văn Ngữ, Kim Liên, Hà Nội 120638, Việt Nam";
+      return "Bụi Rock - 107 E5 Đặng Văn Ngữ, Kim Liên, Hà Nội";
     if (shippingMethod === "pickup_event")
       return "Cổng Nối - số 2 Trịnh Công Sơn, Tây Hồ, Hà Nội";
     return address; // delivery → địa chỉ khách nhập
@@ -277,7 +277,11 @@ export default function CheckoutPage() {
               onEdit={handleEditPaymentInfo}
             />
           ) : (
-            <BookingSuccessInfo email={email} />
+            <div className="flex flex-col lg:flex-row gap-5">
+              <div className="flex-1 flex justify-center">
+                <BookingSuccessInfo email={email} />
+              </div>
+            </div>
           )}
 
           <MerchBookingAside
