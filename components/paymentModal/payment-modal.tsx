@@ -90,9 +90,8 @@ function CopyField({
 
   return (
     <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 space-y-2">
-        <p className="text-xs leading-4 text-[#6C6C6C]">{label}</p>
-
+      <div className="min-w-0 max-h-[32px]">
+        <p className="text-xs leading-6 text-[#6C6C6C]">{label}</p>
         <p className="break-all text-sm leading-6 text-black">{displayValue}</p>
       </div>
 
@@ -244,16 +243,15 @@ export function PaymentModal({
       onClick={onClose}
     >
       <div
-        className="inline-flex w-full max-w-[800px] flex-col items-center gap-6 rounded-[12px] bg-white p-4 lg:p-8"
+        className="inline-flex w-full max-w-[700px] flex-col items-center gap-6 rounded-[12px] bg-white p-4 lg:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex w-full items-center justify-between gap-4">
           <div>
-            <p className="font-heading text-[32px] leading-12 text-[#FF017E]">
+            <p className="font-retroguard text-[32px] leading-8 text-[#FF017E]">
               THANH TOÁN
             </p>
-            <div className="mt-2 flex flex-col gap-2">
-              {/* STATUS */}
+            {/* <div className="mt-2 flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin text-[#FF017E]" />
                 <p className="text-sm text-[#6C6C6C]">
@@ -261,9 +259,7 @@ export function PaymentModal({
                   {PAYMENT_STATUS_TEXT[paymentStatus] ?? paymentStatus}
                 </p>
               </div>
-
-              {/* COUNTDOWN */}
-            </div>
+            </div> */}
           </div>
 
           <Button
@@ -326,9 +322,8 @@ export function PaymentModal({
                     đ
                   </p>
                 </div>
-                <div className="flex items-center justify-between rounded-[8px] bg-[#F5F5F5] px-3 py-2">
+                <div className="flex items-center justify-between rounded-[8px] bg-[#F5F5F5] px-3">
                   <p className="text-xs text-[#6C6C6C]">Thời gian còn lại</p>
-
                   <p
                     className={cn(
                       "text-base font-semibold",
@@ -340,15 +335,28 @@ export function PaymentModal({
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5 max-w-[372px]">
+                <h1 className="font-bold text-16px leading-5 weight-700">
+                  Hướng dẫn thanh toán
+                </h1>
                 <PaymentStep number={1}>
-                  Mở app ngân hàng hoặc ví điện tử
+                  <p className="text-[14px] leading-4">
+                    Chọn tính năng <b>Quét mã QR</b> trên bất kỳ app Ngân hàng
+                    hay Ví điện tử mà bạn sử dụng
+                  </p>
                 </PaymentStep>
 
-                <PaymentStep number={2}>Quét mã QR</PaymentStep>
+                <PaymentStep number={2}>
+                  <p className="text-[14px] leading-4">
+                    Quét mã QR ở trang này
+                  </p>
+                </PaymentStep>
 
                 <PaymentStep number={3}>
-                  Hoàn tất thanh toán và chờ xác nhận tự động
+                  <p className="text-[14px] leading-4">
+                    Thực hiện thanh toán và xem kết quả giao dịch tại trang này
+                    (không tắt popup)
+                  </p>
                 </PaymentStep>
               </div>
             </div>
@@ -366,16 +374,29 @@ export function PaymentModal({
                   ))}
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <PaymentStep number={1}>Mở app ngân hàng</PaymentStep>
+              <div className="space-y-5 max-w-[372px]">
+                <h1 className="font-bold text-16px leading-5 weight-700">
+                  Hướng dẫn thanh toán
+                </h1>
+                <PaymentStep number={1}>
+                  <p className="text-[14px] leading-4">
+                    Chọn tính năng <b>Chuyển tiền</b> trên bất kỳ app Ngân hàng
+                    hay Ví điện tử mà bạn sử dụng
+                  </p>
+                </PaymentStep>
 
                 <PaymentStep number={2}>
-                  Sao chép đúng thông tin chuyển khoản
+                  <p className="text-[14px] leading-4">
+                    Sao chép chính xác các nội dung được ghi ở bên trái.{" "}
+                    <b>Lưu ý kiểm tra chính xác số tiền.</b>
+                  </p>
                 </PaymentStep>
 
                 <PaymentStep number={3}>
-                  Hệ thống sẽ tự xác nhận sau khi thanh toán
+                  <p className="text-[14px] leading-4">
+                    Thực hiện thanh toán và xem kết quả giao dịch tại trang này
+                    (không tắt popup)
+                  </p>
                 </PaymentStep>
               </div>
             </div>

@@ -4,10 +4,10 @@ const baseUrl = process.env.DIRECTUS_URL;
 
 export async function fetchMerch(): Promise<MerchItem[]> {
   if (!baseUrl) throw new Error("Missing NEXT_PUBLIC_DIRECTUS_URL");
-  console.log("BASE URL:", baseUrl);
+  // console.log("BASE URL:", baseUrl);
 
   const res = await fetch(
-    `${baseUrl}/items/merchs?fields=*,merch_images.directus_files_id.*`,
+    `${baseUrl}/items/merch?fields=*,merch_images.directus_files_id.*`,
     {
       headers: { Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}` },
       cache: "no-store",
@@ -18,8 +18,8 @@ export async function fetchMerch(): Promise<MerchItem[]> {
   }
 
   const json = await res.json();
-  console.log("Json:", json);
-  console.log("FETCH:", baseUrl.toString());
-  console.log("STATUS:", res.status);
+  // console.log("Json:", json);
+  // console.log("FETCH:", baseUrl.toString());
+  // console.log("STATUS:", res.status);
   return json.data as MerchItem[];
 }

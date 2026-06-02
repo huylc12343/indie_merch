@@ -13,7 +13,6 @@ type BookingSuccessInfoProps = {
 export function BookingSuccessInfo({ email }: BookingSuccessInfoProps) {
   return (
     <div className="space-y-4">
-      
       {/* ===== SUCCESS ===== */}
       <section className="border-2 border-white bg-[#333333] px-4 md:px-5 py-5 md:py-6">
         <h2 className="font-retroguard text-xl md:text-2xl lg:text-[32px] uppercase text-white lg:leading-[48px]">
@@ -21,25 +20,23 @@ export function BookingSuccessInfo({ email }: BookingSuccessInfoProps) {
         </h2>
 
         <p className="mt-3 text-sm md:text-base leading-6 text-[#60CAA4]">
-          Chúng mình đã gửi thông tin về vé điện tử đến địa chỉ email{" "}
-          <span className="font-bold break-words">{email}</span>.
-          Hãy check email của bạn ngay nhé. Lưu ý kiểm tra trong các mục
-          Quảng Cáo và Spam/Junk trong Gmail nữa nha.
+          Chúng mình sẽ gửi thông tin đơn hàng và các nội dung liên quan đến
+          chương trình tới địa chỉ email{" "}
+          <span className="font-bold break-words">{email}</span>mà bạn đã cung
+          cấp, trong vòng tối đa 10 phút sau khi thanh toán hoàn tất.
         </p>
 
-        <p className="mt-3 text-sm md:text-base leading-6 text-[#60CAA4]">
+        {/* <p className="mt-3 text-sm md:text-base leading-6 text-[#60CAA4]">
           Email gửi vé sẽ được gửi từ:
           <br className="hidden md:block" />
-          <span className="break-all">
-            ticket.indi.indi.show@gmail.com
-          </span>
+          <span className="break-all">ticket.indi.indi.show@gmail.com</span>
           <br />
           Tiêu đề email dự kiến:
           <br className="hidden md:block" />
           <span className="break-words">
             [In-đỉ In-đi] XÁC NHẬN ĐẶT VÉ THÀNH CÔNG
           </span>
-        </p>
+        </p> */}
 
         <p className="mt-3 text-sm leading-5 text-white">
           Hãy liên hệ{" "}
@@ -57,9 +54,7 @@ export function BookingSuccessInfo({ email }: BookingSuccessInfoProps) {
 
       {/* ===== SOCIAL ===== */}
       <section className="border-2 border-white bg-[#333333] px-4 md:px-5 py-5 md:py-6">
-        
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          
           {/* TITLE */}
           <h3 className="font-heading text-xl md:text-2xl lg:text-[32px] uppercase text-white lg:leading-[48px]">
             THEO DÕI FANPAGE

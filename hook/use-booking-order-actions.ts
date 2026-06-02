@@ -173,7 +173,7 @@ export function useMerchOrderActions({
 
       setCreatedOrder(order);
 
-      setPaymentBankName(matchedBank?.name ?? order.payment_info.bin);
+      setPaymentBankName(matchedBank?.shortName ?? order.payment_info.bin);
 
       onOrderCreated();
     } catch {

@@ -80,6 +80,7 @@ export type BankLookupResponse = {
   data?: Array<{
     bin: string;
     name: string;
+    shortName: string;
   }>;
 };
 export type CreateOrderPayload = {
