@@ -109,9 +109,24 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
     localStorage.setItem("cart", JSON.stringify(cart));
     setOpen(false);
 
-    toast.success(`Đã thêm ${newItem.quantity} "${item.name}" vào giỏ hàng`, {
-      duration: 4000, // mặc định ~2000 → tăng lên 4s
-    });
+    toast.success(
+      (t) => (
+        <div className="flex items-center gap-2">
+          <span>
+            Đã thêm {newItem.quantity} "{item.name}" vào giỏ hàng
+          </span>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="ml-2 text-gray-500 hover:text-black"
+          >
+            ✕
+          </button>
+        </div>
+      ),
+      {
+        duration: 4000,
+      },
+    );
     console.log("Added to cart", cart);
   };
   return (
