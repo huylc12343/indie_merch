@@ -9,7 +9,7 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 w-full z-50  ">
       <nav className="flex items-center justify-between px-4 py-3 md:p-6 bg-[#333333]/10 backdrop-blur-md shadow-md">
-        <Link href={"/"}>
+        <Link href={"https://indiindishow.com"}>
           <Image
             src={whiteFavicon}
             alt="logo"

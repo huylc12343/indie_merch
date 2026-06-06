@@ -36,7 +36,7 @@ export default function Navbar() {
       <div className="fixed top-0 left-0 right-0 w-full  z-50 overflow-x-hidden">
         <nav className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 md:p-6 bg-white bg-white/70 backdrop-blur-xl shadow-md backdrop-blur-md">
           {/* Logo */}
-          <Link href="/" className="shrink-0">
+          <Link href="https://indiindishow.com" className="shrink-0">
             <Image
               src={favicon}
               alt="logo"
