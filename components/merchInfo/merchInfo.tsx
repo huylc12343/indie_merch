@@ -4,9 +4,10 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { StaticImageData } from "next/image";
 import toast from "react-hot-toast";
-import { X, Minus, Plus } from "lucide-react";
+import { X, Minus, Plus, Link } from "lucide-react";
 import { MerchItem } from "@/lib/types";
 import { CartItem } from "@/lib/types";
+import sizechart from "@/public/indi-shirt-sizes.jpg";
 const getImageUrl = (id: string) => {
   if (!id) {
     console.warn("Missing image id");
@@ -33,7 +34,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
   };
-
+  const [showSizeChart, setShowSizeChart] = useState(false);
   const handleSizeSelected = (size: string) => {
     setSelectedSize(size);
   };
@@ -187,7 +188,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
     lg:overflow-hidden
   "
             >
-              <div className="flex flex-col w-full lg:max-w-[452px] mt-18 md:mt-4">
+              <div className="flex flex-col w-full lg:max-w-[452px] mt-23 md:mt-4">
                 <Image
                   src={getImageUrl(selectedImageId || "./")}
                   width={460}
@@ -320,6 +321,12 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                           );
                         })}
                       </div>
+                      <a
+                        onClick={() => setShowSizeChart(true)}
+                        className="mt-2 p-0 h-auto text-sm text-[var(--color-primary-pink)] hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        Xem bảng size ở đây
+                      </a>
                     </>
                   )}
                   {item.description && (
@@ -365,6 +372,24 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                 Mua ngay
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+      {showSizeChart && (
+        <div className="fixed inset-0 z-[999] bg-black/70 flex items-center justify-center">
+          <div className="relative bg-white p-4 max-w-4xl w-[90%]">
+            <button
+              onClick={() => setShowSizeChart(false)}
+              className="absolute top-2 right-2"
+            >
+              <X />
+            </button>
+
+            <img
+              src={sizechart.src}
+              alt="Size Chart"
+              className="w-full h-auto"
+            />
           </div>
         </div>
       )}
