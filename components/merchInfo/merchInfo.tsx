@@ -342,17 +342,19 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                   <div className="sticky bottom-0 bg-white border-t p-4 hidden md:flex flex-col lg:flex-row gap-4">
                     <Button
                       variant="outline"
+                      disabled
                       onClick={handleAddToCart}
                       className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
                     >
-                      Thêm vào giỏ hàng
+                      Ngừng nhận pre-order
                     </Button>
-                    <Button
+                    {/* <Button
+                      disabled
                       onClick={handleBuyNow}
                       className="h-14 hover:cursor-pointer rounded-none px-5 text-2xl font-semibold"
                     >
                       Mua ngay
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -360,17 +362,19 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
             <div className="sticky bottom-0 md:hidden bg-white border-t p-4 flex flex-col lg:flex-row gap-4">
               <Button
                 variant="outline"
+                disabled
                 onClick={handleAddToCart}
                 className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
               >
-                Thêm vào giỏ hàng
+                Ngừng nhận pre-order
               </Button>
-              <Button
+              {/* <Button
+                disabled
                 onClick={handleBuyNow}
                 className="h-14 hover:cursor-pointer rounded-none px-5 text-2xl font-semibold"
               >
                 Mua ngay
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
