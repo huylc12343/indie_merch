@@ -50,7 +50,6 @@ export default function Navbar() {
           <div className="shrink-0 flex items-center">
             {/* Desktop */}
             <Button
-              disabled
               className="hidden md:flex px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 hover:bg-black/80 cursor-pointer rounded-none h-auto gap-2"
               onClick={() => setOpenCart(true)}
             >
@@ -67,7 +66,6 @@ export default function Navbar() {
               className="md:hidden relative p-2 cursor-pointer"
               onClick={() => setOpenCart(true)}
               aria-label="Mở giỏ hàng"
-              disabled
             >
               <ShoppingCart size={24} />
               {cartCount > 0 && (
