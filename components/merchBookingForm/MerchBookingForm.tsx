@@ -255,11 +255,10 @@ export default function BookingForm({
                 </div>
               </div>
             </label>
-            <label
+            {/* <label
               htmlFor="pickup_event"
               className="flex w-full items-start gap-4 bg-[#171717] p-4 cursor-pointer"
             >
-              {/* RADIO */}
               <RadioGroupItem
                 value="pickup_event"
                 id="pickup_event"
@@ -268,10 +267,8 @@ export default function BookingForm({
                data-checked:bg-[#333333]"
               />
 
-              {/* CONTENT */}
               <div className="flex flex-col gap-4 w-full">
                 <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                  {/* LEFT */}
                   <div className="flex-1">
                     <p className="text-lg md:text-xl lg:text-2xl font-semibold text-white">
                       Nhận trực tiếp tại In-đỉ In-đi:
@@ -287,7 +284,7 @@ export default function BookingForm({
                   </div>
                 </div>
               </div>
-            </label>
+            </label> */}
             <label
               htmlFor="delivery"
               className="flex w-full items-start gap-4 bg-[#171717] p-4 cursor-pointer"
