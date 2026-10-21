@@ -1,25 +1,30 @@
 import { MerchItem } from "../lib/types";
 
-const baseUrl = process.env.DIRECTUS_URL;
-
 export async function fetchMerch(): Promise<MerchItem[]> {
-  if (!baseUrl) throw new Error("Missing NEXT_PUBLIC_DIRECTUS_URL");
-  // console.log("BASE URL:", baseUrl);
+  try {
+    const baseUrl =
+      process.env.DIRECTUS_URL || process.env.NEXT_PUBLIC_DIRECTUS_URL;
+    if (!baseUrl) {
+      throw new Error("Missing DIRECTUS_URL or NEXT_PUBLIC_DIRECTUS_URL");
+    }
 
-  const res = await fetch(
-    `${baseUrl}/items/merchs?fields=*,merch_images.directus_files_id.*`,
-    {
-      headers: { Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}` },
-      cache: "no-store",
-    },
-  );
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
+    const headers: Record<string, string> = {};
+    if (process.env.DIRECTUS_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.DIRECTUS_TOKEN}`;
+    }
+
+    const res = await fetch(
+      `${baseUrl}/items/merchs?fields=*,merch_images.directus_files_id.*`,
+      { headers, cache: "no-store" },
+    );
+    if (!res.ok) {
+      throw new Error(`Directus returned HTTP ${res.status}`);
+    }
+
+    const json: { data?: unknown } = await res.json();
+    return Array.isArray(json.data) ? (json.data as MerchItem[]) : [];
+  } catch (error) {
+    console.warn("Could not load merch from Directus; showing no merch.", error);
+    return [];
   }
-
-  const json = await res.json();
-  // console.log("Json:", json);
-  // console.log("FETCH:", baseUrl.toString());
-  // console.log("STATUS:", res.status);
-  return json.data as MerchItem[];
 }

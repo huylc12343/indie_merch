@@ -1,6 +1,7 @@
 import sample from "@/app/img_sample.png";
 import { fetchMerch } from "@/lib/fetchMerch";
 import MerchInfo from "@/components/merchInfo/merchInfo";
+import MerchPlaceholder from "@/components/merchInfo/merchPlaceholder";
 export const dynamic = "force-dynamic";
 
 // const merchData = [
@@ -114,9 +115,15 @@ export default async function Home() {
             {/* RIGHT */}
             <div className="w-full max-w-[630px]">
               <div className="flex flex-col gap-6">
-                {merchData.map((item) => (
-                  <MerchInfo key={item.id} item={item} />
-                ))}
+                {merchData.length > 0
+                  ? merchData.map((item) => (
+                      <MerchInfo key={item.id} item={item} />
+                    ))
+                  : Array.from({ length: 3 }, (_, index) => (
+                      <MerchPlaceholder
+                        key={`merch-placeholder-${index}`}
+                      />
+                    ))}
               </div>
             </div>
           </div>
