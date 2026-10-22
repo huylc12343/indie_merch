@@ -1,12 +1,17 @@
 import { MerchItem } from "../lib/types";
 import { replaceMerchImages } from "./merchImageOverrides";
+import { localMerch } from "./localMerch";
 
 export async function fetchMerch(): Promise<MerchItem[]> {
+  if (process.env.MERCH_DATA_SOURCE?.toLowerCase() !== "backend") {
+    return localMerch;
+  }
+
   try {
     const baseUrl =
       process.env.DIRECTUS_URL || process.env.NEXT_PUBLIC_DIRECTUS_URL;
     if (!baseUrl) {
-      throw new Error("Missing DIRECTUS_URL or NEXT_PUBLIC_DIRECTUS_URL");
+      throw new Error("Backend mode requires DIRECTUS_URL");
     }
 
     const headers: Record<string, string> = {};

@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Merchandise data source
+
+The catalog uses local data by default, so the product list and images work without a backend. Product details are in `lib/localMerch.ts`, and optimized product images are in `public/merch`.
+
+To use the Directus API instead, add these variables to `.env.local` for local development or to the Vercel project's Environment Variables, then redeploy:
+
+```env
+MERCH_DATA_SOURCE=backend
+DIRECTUS_URL=https://your-directus.example.com
+DIRECTUS_TOKEN=your-directus-token # optional when the collection is public
+NEXT_PUBLIC_BE_URL=https://your-backend.example.com
+```
+
+If `MERCH_DATA_SOURCE` is unset or has any value other than `backend`, the local catalog is used.

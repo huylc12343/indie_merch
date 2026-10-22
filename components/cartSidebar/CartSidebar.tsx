@@ -105,6 +105,10 @@ export default function CartSidebar({
       ...currentItem,
       [field]: value,
     };
+    if (field === "selectedColor") {
+      updatedItem.image =
+        updatedItem.availableColorImages?.[value] || updatedItem.image;
+    }
 
     // regenerate cartKey
     const newCartKey = [

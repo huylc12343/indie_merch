@@ -20,6 +20,7 @@ const getImageUrl = (id: string) => {
 };
 export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);
+  const isSoldOut = item.soldOut !== false;
   const [selectedColor, setSelectedColor] = useState<string | null>(
     item.colors?.[0] || null,
   );
@@ -32,11 +33,22 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
   const [quantity, setQuantity] = useState(1);
 
   const [selectedImageId, setSelectedImageId] = useState<string | undefined>(
-    item.merch_images?.[0]?.directus_files_id?.id,
+    item.colorImages?.[item.colors?.[0] || ""] ||
+      item.merch_images?.[0]?.directus_files_id?.id,
   );
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
+    const imageId = item.colorImages?.[color];
+    if (imageId) setSelectedImageId(imageId);
   };
+  const availableColorImages = item.colorImages
+    ? Object.fromEntries(
+        Object.entries(item.colorImages).map(([color, imageId]) => [
+          color,
+          getImageUrl(imageId),
+        ]),
+      )
+    : undefined;
   const [showSizeChart, setShowSizeChart] = useState(false);
   const handleSizeSelected = (size: string) => {
     setSelectedSize(size);
@@ -45,6 +57,8 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
     setSelecteType(type);
   };
   const handleBuyNow = () => {
+    if (isSoldOut) return;
+
     const buyNowItem: CartItem = {
       cartKey: [item.id, selectedColor, selectedSize, selectedType].join("-"),
       id: item.id,
@@ -52,12 +66,15 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
       price: item.price,
       quantity,
       image: getImageUrl(
-        item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png",
+        selectedImageId ||
+          item.merch_images?.[0]?.directus_files_id.id ||
+          "./placeholder.png",
       ),
       selectedColor,
       selectedSize,
       selectedType,
       availableColors: item.colors,
+      availableColorImages,
       availableSizes: item.sizes,
       availableTypes: item.types,
     };
@@ -69,6 +86,8 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
     window.location.href = "/check-out";
   };
   const handleAddToCart = () => {
+    if (isSoldOut) return;
+
     const cartKey = [item.id, selectedColor, selectedSize, selectedType].join(
       "-",
     );
@@ -85,7 +104,9 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
       quantity,
 
       image: getImageUrl(
-        item.merch_images?.[0]?.directus_files_id.id || "./placeholder.png",
+        selectedImageId ||
+          item.merch_images?.[0]?.directus_files_id.id ||
+          "./placeholder.png",
       ),
 
       selectedColor,
@@ -94,6 +115,7 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
 
       selectedType,
       availableColors: item.colors,
+      availableColorImages,
       availableSizes: item.sizes,
       availableTypes: item.types,
     };
@@ -139,16 +161,23 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
         className="merch-item hover:cursor-pointer"
         onClick={() => setOpen(true)}
       >
-        <Image
-          src={getImageUrl(
-            item.merch_images?.[0]?.directus_files_id.id || "/placeholder.png",
+        <div className="relative">
+          <Image
+            src={getImageUrl(
+              item.merch_images?.[0]?.directus_files_id.id || "/placeholder.png",
+            )}
+            alt={item.name}
+            width={630}
+            height={630}
+            quality={100}
+            unoptimized
+          />
+          {isSoldOut && (
+            <span className="absolute right-3 top-3 border border-[#FF017E] bg-white px-2 py-1 text-xs font-bold leading-none tracking-wide text-[#FF017E]">
+              SOLD OUT
+            </span>
           )}
-          alt={item.name}
-          width={630}
-          height={630}
-          quality={100}
-          unoptimized
-        />
+        </div>
         <div className="merch-info pt-3 text-3xl leading-8.5">
           <span className="font-semibold">{item.name}</span>
           {" - "}
@@ -159,17 +188,19 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
       </div>
       {/* open */}
       {open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center">
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setOpen(false);
+          }}
+        >
           <div
             className="
-                  w-full 
-                  
-                  max-w-[1000px] 
-                  bg-white 
-                  flex flex-col
+                  w-full max-w-[1000px] bg-white flex flex-col overflow-hidden
+                  max-h-[100dvh] lg:max-h-[90vh]
                 "
           >
-            <div className="sticky top-0 z-10 bg-white flex justify-between items-center p-4 lg:p-8 lg:pb-0 border-b md:border-none">
+            <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-white p-4 lg:border-none lg:p-8 lg:pb-0">
               <h1 className="font-retroguard text-[28px]">Chi tiết</h1>
               <Button
                 variant="ghost"
@@ -183,12 +214,8 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
             </div>
             <div
               className="
-    flex-1 
-    flex flex-col lg:flex-row 
-    mx-4 lg:mx-8 mb-6 lg:mb-10 gap-6
-    max-h-[80vh] 
-    overflow-y-auto 
-    lg:overflow-hidden
+    merch-vertical-scroll flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto
+    mx-4 mb-6 max-h-[80vh] lg:mx-8 lg:mb-10 lg:flex-row lg:overflow-hidden
   "
             >
               <div className="flex flex-col w-full lg:max-w-[452px] mt-23 md:mt-4">
@@ -218,14 +245,21 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                             ? "border-[var(--color-primary-pink)]"
                             : "border-transparent"
                         }`}
-                        onClick={() => setSelectedImageId(imgId)}
+                        onClick={() => {
+                          setSelectedImageId(imgId);
+                          const color = Object.entries(
+                            item.colorImages || {},
+                          ).find(([, imageId]) => imageId === imgId)?.[0];
+                          if (color) setSelectedColor(color);
+                        }}
                       />
                     );
                   })}
                 </div>
               </div>
-              <div className="flex flex-col lg:max-w-[452px] lg:min-w-[452px] lg:max-h-[600px] justify-between lg:overflow-y-auto">
-                <div className="flex flex-col">
+              <div className="flex min-h-0 min-w-0 flex-col lg:max-h-[600px] lg:max-w-[452px] lg:flex-1">
+                <div className="merch-vertical-scroll min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto">
+                  <div className="flex flex-col">
                   <span className="font-retroguard text-[50px] leading-[60px] -tracking-normal font-normal">
                     {item.name}
                   </span>
@@ -261,8 +295,8 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                       <Plus className="w-4 h-4 rounded-none" />
                     </Button>
 
-                    {/* Stock */}
-                    {/* <span className="text-sm text-gray-500 ml-2">
+                      {/* Stock */}
+                      {/* <span className="text-sm text-gray-500 ml-2">
                       Kho: {item.quantity}
                     </span> */}
                   </div>
@@ -335,45 +369,68 @@ export default function MerchInfo({ item }: { item: MerchItem }) {
                   {item.description && (
                     <>
                       <h3 className="mt-10">Mô tả sản phẩm</h3>
-                      <p className="mt-4 text-[#6C6C6C] mb-10">
+                      <p className="mt-4 mb-10 whitespace-pre-line text-[#6C6C6C]">
                         {item.description}
                       </p>
                     </>
                   )}
-                </div>
-                <div className="flex">
-                  <div className="sticky bottom-0 bg-white border-t p-4 hidden md:flex flex-col lg:flex-row gap-4">
-                    <Button
-                      variant="outline"
-                      onClick={handleAddToCart}
-                      className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
-                    >
-                      Thêm vào giỏ hàng
-                    </Button>
-                    <Button
-                      onClick={handleBuyNow}
-                      className="h-14 hover:cursor-pointer rounded-none px-5 text-2xl font-semibold"
-                    >
-                      Mua ngay
-                    </Button>
                   </div>
+                </div>
+                <div className="hidden md:flex flex-col items-end gap-4 border-t bg-white p-4 lg:flex-row lg:justify-end">
+                  {isSoldOut ? (
+                    <Button
+                      type="button"
+                      disabled
+                      className="h-14 w-auto min-w-[180px] cursor-not-allowed rounded-none px-5 text-2xl font-semibold opacity-60 disabled:opacity-60"
+                    >
+                      SOLD OUT
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={handleAddToCart}
+                        className="h-14 rounded-none border-[#171717] px-5 text-2xl font-semibold hover:cursor-pointer"
+                      >
+                        Thêm vào giỏ hàng
+                      </Button>
+                      <Button
+                        onClick={handleBuyNow}
+                        className="h-14 rounded-none px-5 text-2xl font-semibold hover:cursor-pointer"
+                      >
+                        Mua ngay
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-            <div className="sticky bottom-0 md:hidden bg-white border-t p-4 flex flex-col lg:flex-row gap-4">
-              <Button
-                variant="outline"
-                onClick={handleAddToCart}
-                className="h-14 rounded-none hover:cursor-pointer border-[#171717] px-5 text-2xl font-semibold"
-              >
-                Thêm vào giỏ hàng
-              </Button>
-              <Button
-                onClick={handleBuyNow}
-                className="h-14 hover:cursor-pointer rounded-none px-5 text-2xl font-semibold"
-              >
-                Mua ngay
-              </Button>
+            <div className="sticky bottom-0 md:hidden bg-white border-t p-4 flex flex-col items-end gap-4">
+              {isSoldOut ? (
+                <Button
+                  type="button"
+                  disabled
+                  className="h-14 w-auto min-w-[180px] cursor-not-allowed rounded-none px-5 text-2xl font-semibold opacity-60 disabled:opacity-60"
+                >
+                  SOLD OUT
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleAddToCart}
+                    className="h-14 rounded-none border-[#171717] px-5 text-2xl font-semibold hover:cursor-pointer"
+                  >
+                    Thêm vào giỏ hàng
+                  </Button>
+                  <Button
+                    onClick={handleBuyNow}
+                    className="h-14 rounded-none px-5 text-2xl font-semibold hover:cursor-pointer"
+                  >
+                    Mua ngay
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

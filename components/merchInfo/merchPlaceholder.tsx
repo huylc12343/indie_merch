@@ -30,7 +30,7 @@ export default function MerchPlaceholder() {
         onClick={() => setOpen(true)}
         className="merch-item block w-full cursor-pointer text-left"
       >
-        <span className="flex aspect-square w-full items-center justify-center overflow-hidden bg-neutral-100">
+        <span className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-neutral-100">
           <img
             src={placeholderImage}
             alt="Minh họa ảnh không tải được"
@@ -38,6 +38,9 @@ export default function MerchPlaceholder() {
             height={630}
             className="h-full w-full object-contain p-4"
           />
+          <span className="absolute right-3 top-3 border border-[#FF017E] bg-white px-2 py-1 text-xs font-bold leading-none tracking-wide text-[#FF017E]">
+            SOLD OUT
+          </span>
         </span>
         <span className="block pt-3 text-2xl leading-8">
           <span className="block font-semibold">

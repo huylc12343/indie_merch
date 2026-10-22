@@ -11,10 +11,12 @@ export interface MerchItem {
   quantity?: number;
   merch_images?: MerchImage[];
   colors?: string[];
+  colorImages?: Record<string, string>;
   sizes?: string[];
   types?: string[];
   description?: string;
   status?: string;
+  soldOut?: boolean;
 }
 
 export interface CartItem {
@@ -37,6 +39,8 @@ export interface CartItem {
   selectedType?: string | null;
 
   availableColors?: string[];
+
+  availableColorImages?: Record<string, string>;
 
   availableSizes?: string[];
 
