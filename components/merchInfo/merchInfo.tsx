@@ -13,6 +13,9 @@ const getImageUrl = (id: string) => {
     console.warn("Missing image id");
     return "";
   }
+  if (id.startsWith("/") || id.startsWith("http://") || id.startsWith("https://")) {
+    return id;
+  }
   return `${process.env.NEXT_PUBLIC_BE_URL}/assets/${id}`;
 };
 export default function MerchInfo({ item }: { item: MerchItem }) {

@@ -1,4 +1,5 @@
 import { MerchItem } from "../lib/types";
+import { replaceMerchImages } from "./merchImageOverrides";
 
 export async function fetchMerch(): Promise<MerchItem[]> {
   try {
@@ -22,7 +23,8 @@ export async function fetchMerch(): Promise<MerchItem[]> {
     }
 
     const json: { data?: unknown } = await res.json();
-    return Array.isArray(json.data) ? (json.data as MerchItem[]) : [];
+    const items = Array.isArray(json.data) ? (json.data as MerchItem[]) : [];
+    return replaceMerchImages(items);
   } catch (error) {
     console.warn("Could not load merch from Directus; showing no merch.", error);
     return [];
