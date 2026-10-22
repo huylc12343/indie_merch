@@ -4,15 +4,15 @@ export const localMerch: MerchItem[] = [
   {
     id: "bandana",
     name: "Bandana",
-    price: 200_000,
+    price: 159_000,
     soldOut: true,
-    description: "Kích thước: 30 × 30 cm\nChất liệu: Lụa satin",
+    description: "Kích thước: 70 × 70 cm\nChất liệu: Lụa satin",
     merch_images: [{ directus_files_id: { id: "/merch/bandana.webp" } }],
   },
   {
     id: "indie-shirt",
     name: "Áo Indie",
-    price: 200_000,
+    price: 249_000,
     soldOut: true,
     colors: ["Trắng", "Đen"],
     sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
@@ -29,7 +29,7 @@ export const localMerch: MerchItem[] = [
   {
     id: "notebook",
     name: "Sổ tay",
-    price: 40_000,
+    price: 39_000,
     soldOut: true,
     description: "Kích thước: 10.5 × 14.8 cm",
     merch_images: [{ directus_files_id: { id: "/merch/notebook.webp" } }],
@@ -37,7 +37,7 @@ export const localMerch: MerchItem[] = [
   {
     id: "sticker",
     name: "Sticker",
-    price: 30_000,
+    price: 15_000,
     soldOut: true,
     description: "Kích thước: 14.8 × 21 cm",
     merch_images: [{ directus_files_id: { id: "/merch/sticker.webp" } }],
@@ -45,7 +45,7 @@ export const localMerch: MerchItem[] = [
   {
     id: "hand-fan",
     name: "Quạt tay",
-    price: 50_000,
+    price: 99_000,
     soldOut: true,
     description: "Kích thước: 22 × 40 cm\nChất liệu: Vải lụa gió",
     merch_images: [{ directus_files_id: { id: "/merch/hand-fan.webp" } }],
@@ -53,7 +53,7 @@ export const localMerch: MerchItem[] = [
   {
     id: "lanyard",
     name: "Lanyard",
-    price: 50_000,
+    price: 69_000,
     soldOut: true,
     description: "Kích thước: 2 × 85 cm",
     merch_images: [{ directus_files_id: { id: "/merch/lanyard.webp" } }],
