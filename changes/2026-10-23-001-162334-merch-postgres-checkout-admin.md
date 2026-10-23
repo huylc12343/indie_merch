@@ -1,7 +1,7 @@
 # Merch PostgreSQL checkout and admin
 
 - Created: 2026-10-23T16:23:34+07:00
-- Updated: 2026-10-23T16:57:01+07:00
+- Updated: 2026-10-23T17:01:42+07:00
 
 ## Request
 
@@ -48,6 +48,8 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Vercel deployment `dpl_BhdHPPP6ou7qsCFFNKAd957td9bW` reached `READY`. The homepage, `/check-out`, and `/admin` returned HTTP 200; the homepage HTML contains the mock catalog and bundled merch image paths.
 - Preview URL: https://indie-merch-86bgk23r2-nguyen-quang-huys-projects-bd214c44.vercel.app
 - TypeScript passed after the complete mock flow was added. An isolated localStorage verification exercised all six available products, Google Demo session/login/logout, canonical pricing, `INDI10`, delivery shipping, order persistence, payment idempotency, admin edits, cancellation/expiry stock release, and invalid quantities/variants.
+- Full mock Preview `dpl_GkFE7WLTvrjfjJrVFe3ztqP7sgL9` reached `READY`, built from commit `53f1e89fe34af16ecc17a0a864c17e7ddb19f544`. The homepage, checkout, and admin returned HTTP 200; the homepage serialized all six products with `soldOut=false`, and the admin rendered the Google Demo sign-in button.
+- Full mock Preview URL: https://indie-merch-hag1nn7kp-nguyen-quang-huys-projects-bd214c44.vercel.app
 
 ## Remaining risks
 
