@@ -21,6 +21,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Enabled all bundled merch for purchase and added `NEXT_PUBLIC_DEMO_MODE` for the requested complete browser demo: localStorage products, stock reservations, orders, discounts, payment completion, and admin management.
 - Added an explicitly labeled Google Demo sign-in for the browser-only admin. The real server admin authentication and PostgreSQL routes retain their existing checks.
 - Added a client catalog that reflects admin edits and stock changes from the same browser, including changes made in another tab.
+- The mock success screen links to admin and explains that demo orders do not send email or charge real money.
 
 ## Important files
 

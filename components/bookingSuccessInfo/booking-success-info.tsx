@@ -5,6 +5,7 @@ import Link from "next/link";
 import facebook from "@/app/facebook.svg";
 import instagram from "@/app/instagram.svg";
 import tiktok from "@/app/tiktok.svg";
+import { DEMO_MODE } from "@/lib/mock-store";
 
 type BookingSuccessInfoProps = {
   email: string;
@@ -21,10 +22,12 @@ export function BookingSuccessInfo({ email }: BookingSuccessInfoProps) {
           </h2>
 
           <p className="mt-3 text-sm md:text-base leading-6 text-[#60CAA4]">
+            {DEMO_MODE ? <>Đơn demo đã được thanh toán và lưu trên trình duyệt này. <Link href="/admin" className="font-bold underline">Xem đơn trong admin</Link>. Bản demo không gửi email hoặc thu tiền thật.</> : <>
             Chúng mình sẽ gửi thông tin đơn hàng và các nội dung liên quan đến
             chương trình tới địa chỉ email{" "}
             <span className="font-bold break-words">{email}</span> mà bạn đã
             cung cấp, trong vòng tối đa 10 phút sau khi thanh toán hoàn tất.
+            </>}
           </p>
 
           {/* <p className="mt-3 text-sm md:text-base leading-6 text-[#60CAA4]">
@@ -39,7 +42,7 @@ export function BookingSuccessInfo({ email }: BookingSuccessInfoProps) {
           </span>
         </p> */}
 
-          <p className="mt-3 text-sm leading-5 text-white">
+          <p hidden={DEMO_MODE} className="mt-3 text-sm leading-5 text-white">
             Hãy liên hệ{" "}
             <Link
               href="https://www.facebook.com/indiindishow"
