@@ -56,7 +56,7 @@ For the complete browser demo, set `NEXT_PUBLIC_DEMO_MODE=true` and `MERCH_DATA_
 
 ## Ticket sales and the shared admin
 
-Open `/tickets` to select an event, ticket tiers, quantities, and buyer details. Checkout uses the same QR simulation and stock reservation flow as merch. Each paid ticket receives its own code and QR. `/admin` has a responsive sidebar for merch orders, products, events/ticket tiers, and ticket orders. Admins can add events and tiers, change prices/capacity, toggle sales, and view issued ticket codes.
+The ticket storefront runs in the separate `gapgap-ticket` project with its original interface. Set `NEXT_PUBLIC_TICKET_SITE_URL` to its deployment URL (production: `https://ticket.indiindishow.com`). The old `/tickets` route redirects there. This project serves merch (production: `https://merch.indiindishow.com`), the shared `/admin`, and the ticket catalog/order APIs. Each SQL-paid ticket receives its own code and QR. Admins can add events and tiers, change prices/capacity, toggle sales, and view issued ticket codes.
 
 `TICKET_DATA_SOURCE=postgres|mock|directus` selects the ticket catalog independently of `MERCH_DATA_SOURCE`:
 
@@ -66,4 +66,6 @@ Open `/tickets` to select an event, ticket tiers, quantities, and buyer details.
 
 Directus events require `id`, `name`, `venue` (or `location`), `starts_at` (or `start_time`), and `active` or `status=published|active|available`; `description` is optional. Ticket types require `id`, `event_id` (ID or an expanded relation), `name`, `price`, `quantity` (or `stock_quantity`), and `active` or `status`. Catalog IDs are namespaced as `event-<id>` and `ticket-<id>`. The first import seeds stock; subsequent imports preserve SQL stock/reservations while refreshing source-owned catalog details. Tickets and merch have separate catalog/order kinds and cannot be mixed in one order. Each ticket order belongs to one event.
 
-The current ticket QR identifies an issued ticket; an admission/check-in scanner and email delivery are not implemented. In browser demo mode, Google sign-in and payment remain simulated, and existing merch demo records are preserved when ticket data is initialized.
+In `gapgap-ticket`, configure `TICKET_API_URL` to this API deployment and set `NEXT_PUBLIC_TICKET_DATA_SOURCE` to match this server's `TICKET_DATA_SOURCE` for PostgreSQL/Directus integration. The ticket app proxies requests from its server, so the storefronts do not depend on browser CORS or shared admin cookies. Mock localStorage remains separate for each project origin; cross-project orders are shared through the real API/PostgreSQL.
+
+The current ticket QR identifies an issued ticket; an admission/check-in scanner and email delivery are not implemented in this shared API. In browser demo mode, Google sign-in and payment remain simulated, and existing merch demo records are preserved when ticket data is initialized.

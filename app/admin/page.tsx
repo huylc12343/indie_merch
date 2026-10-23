@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DEMO_MODE, mockAdminRequest } from "@/lib/mock-store";
 import AdminEvents from "@/components/adminEvents";
 import type { TicketEvent } from "@/lib/ticket-data";
+import { TICKET_SITE_URL } from "@/lib/sites";
 
 type Product = {
   id: string;
@@ -232,7 +233,7 @@ export default function AdminPage() {
         <aside aria-label="Menu quản trị" className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 bg-neutral-950 text-white transition-transform md:visible md:translate-x-0 ${sidebarOpen ? "visible translate-x-0" : "invisible -translate-x-full"}`}>
           <div className="flex items-center justify-between border-b border-white/10 px-6 py-6"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-pink-500">Indi Admin</p><p className="mt-2 font-retroguard text-2xl">MERCH & VÉ</p></div><Button type="button" size="icon" variant="ghost" aria-label="Đóng menu" className="md:hidden" onClick={() => setSidebarOpen(false)}><X /></Button></div>
           <nav className="flex-1 space-y-2 p-4">{navigation.map((item) => <button key={item.id} type="button" aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setSidebarOpen(false); setError(null); setNotice(null); }} className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold ${tab === item.id ? "bg-pink-600 text-white" : "text-neutral-400 hover:bg-white/10 hover:text-white"}`}><item.icon className="size-5" />{item.label}</button>)}</nav>
-          <div className="space-y-2 border-t border-white/10 p-4"><Link href="/" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Box className="size-4" />Trang bán merch</Link><Link href="/tickets" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Ticket className="size-4" />Trang bán vé</Link><Button type="button" variant="ghost" onClick={() => void logout()} className="w-full justify-start gap-3 px-4 text-neutral-400"><LogOut className="size-4" />Đăng xuất</Button></div>
+          <div className="space-y-2 border-t border-white/10 p-4"><Link href="/" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Box className="size-4" />Trang bán merch</Link><Link href={TICKET_SITE_URL} className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Ticket className="size-4" />Trang bán vé</Link><Button type="button" variant="ghost" onClick={() => void logout()} className="w-full justify-start gap-3 px-4 text-neutral-400"><LogOut className="size-4" />Đăng xuất</Button></div>
         </aside>
       </>}
       <div className={authenticated ? "md:pl-64" : ""}>

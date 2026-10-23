@@ -57,8 +57,8 @@ async function importDirectusTickets() {
     if (!types.length) continue;
     const event = validateTicketEvent({
       id: `event-${row.id}`, name: row.name, venue: row.venue ?? row.location,
-      starts_at: row.starts_at ?? row.start_time, description: row.description, active: active(row),
-      ticket_types: types.map((type) => ({ id: `ticket-${type.id}`, name: type.name, description: type.description, price: type.price, stock_quantity: type.quantity ?? type.stock_quantity ?? 0, active: active(type) })),
+      starts_at: row.starts_at ?? row.start_time ?? row.date_start, description: row.description, active: active(row),
+      ticket_types: types.map((type) => ({ id: `ticket-${type.id}`, name: type.name, description: type.description ?? type.benefits, price: type.price ?? type.price_sale ?? type.price_original, stock_quantity: type.quantity ?? type.stock_quantity ?? Math.max(0, Number(type.quantity_total ?? 0) - Number(type.quantity_sold ?? 0)), active: active(type) })),
     });
     await saveTicketEvent(event, true);
     imported.push(event.id);
