@@ -27,13 +27,13 @@ export async function PATCH(
       `UPDATE merch_products
           SET name = $2, price = $3, description = $4, stock_quantity = $5, active = $6,
               colors = $7, sizes = $8, types = $9, updated_at = NOW()
-        WHERE id = $1 AND reserved_quantity <= $5
+        WHERE id = $1 AND kind = 'merch' AND reserved_quantity <= $5
         RETURNING id, name, price, description, stock_quantity, reserved_quantity, active, colors, sizes, types, images, color_images, created_at, updated_at`,
       [id, name, price, typeof body.description === "string" ? body.description.trim() : "",
         quantity, body.active, stringList(body.colors), stringList(body.sizes), stringList(body.types)],
     );
     if (!result.rows[0]) {
-      const existing = await database.query("SELECT id FROM merch_products WHERE id = $1", [id]);
+      const existing = await database.query("SELECT id FROM merch_products WHERE id = $1 AND kind = 'merch'", [id]);
       return NextResponse.json(
         { error: existing.rows.length ? "Tồn kho không thể thấp hơn số lượng đang được giữ cho đơn chờ thanh toán." : "Không tìm thấy sản phẩm." },
         { status: existing.rows.length ? 409 : 404 },

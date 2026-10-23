@@ -31,6 +31,8 @@ type ProductRow = {
   sizes: string[];
   types: string[];
   images: string[];
+  kind: "merch" | "ticket";
+  event_id: string | null;
 };
 
 type OrderRow = Record<string, unknown> & {
@@ -39,6 +41,7 @@ type OrderRow = Record<string, unknown> & {
   status: string;
   payment_info: Record<string, string | number>;
   expires_at: Date | string;
+  kind: "merch" | "ticket";
 };
 
 export class OrderError extends Error {
@@ -76,7 +79,7 @@ function paymentInfo(orderCode: string, id: string, amount: number) {
   };
 }
 
-export async function createMerchOrder(input: IncomingOrder) {
+export async function createMerchOrder(input: IncomingOrder, kind: "merch" | "ticket" = "merch", requestedEventId?: string) {
   const customerName = requiredText(input.customer_name, "Customer name");
   const customerPhone = requiredText(input.customer_phone, "Phone number", 40);
   if (!PHONE_NUMBER_REGEX.test(customerPhone)) throw new OrderError("Phone number is invalid.");
@@ -115,12 +118,19 @@ export async function createMerchOrder(input: IncomingOrder) {
   return withTransaction(async (client) => {
     const ids = [...new Set(items.map((item) => item.id))];
     const productResult = await client.query<ProductRow>(
-      `SELECT id, name, price, stock_quantity, reserved_quantity, active, colors, sizes, types, images
-         FROM merch_products WHERE id = ANY($1::text[]) FOR UPDATE`,
+      `SELECT id, name, price, stock_quantity, reserved_quantity, active, colors, sizes, types, images, kind, event_id
+         FROM merch_products WHERE id = ANY($1::text[]) ORDER BY id FOR UPDATE`,
       [ids],
     );
     const products = new Map(productResult.rows.map((product) => [product.id, product]));
     if (products.size !== ids.length) throw new OrderError("A product in your cart is no longer available.", 409);
+    const eventId = kind === "ticket" ? productResult.rows[0].event_id : null;
+    if (productResult.rows.some((product) => product.kind !== kind || (kind === "ticket" && product.event_id !== eventId))) throw new OrderError("Order products must belong to the same catalog and event.");
+    if (kind === "ticket") {
+      if (!eventId || eventId !== requestedEventId || shippingMethod !== "pickup_event") throw new OrderError("Invalid ticket event or fulfillment method.");
+      const event = await client.query("SELECT id FROM ticket_events WHERE id = $1 AND active = TRUE", [eventId]);
+      if (!event.rows.length) throw new OrderError("This event is not on sale.", 409);
+    }
 
     const totalsByProduct = new Map<string, number>();
     for (const item of items) {
@@ -199,11 +209,11 @@ export async function createMerchOrder(input: IncomingOrder) {
       `INSERT INTO merch_orders
         (id, order_code, customer_name, customer_phone, customer_email, customer_address,
          shipping_method, subtotal, shipping_fee, discount_code, discount_code_amount,
-         total, payment_method, payment_info, status, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'bank_transfer', $13, 'init', $14)`,
+         total, payment_method, payment_info, status, expires_at, kind, event_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'bank_transfer', $13, 'init', $14, $15, $16)`,
       [id, orderCode, customerName, customerPhone, customerEmail, customerAddress,
         shippingMethod, subtotal, shippingFee, discountCode, discountAmount, total,
-        JSON.stringify(info), expiresAt],
+        JSON.stringify(info), expiresAt, kind, eventId],
     );
 
     const orderItems = [];
@@ -235,6 +245,8 @@ export async function createMerchOrder(input: IncomingOrder) {
       id,
       order_code: orderCode,
       status: "init",
+      kind,
+      event_id: eventId,
       subtotal,
       shipping_fee: shippingFee,
       discount_code_amount: discountAmount,
@@ -262,6 +274,11 @@ async function settleOrder(client: DatabaseClient, order: OrderRow, status: "don
           WHERE id = $1`,
         [item.product_id, item.quantity],
       );
+      if (order.kind === "ticket") {
+        for (let index = 0; index < item.quantity; index++) {
+          await client.query("INSERT INTO event_tickets (id, order_id, product_id, code) VALUES ($1, $2, $3, $4)", [randomUUID(), order.id, item.product_id, `TKT-${randomUUID().toUpperCase()}`]);
+        }
+      }
     } else {
       await client.query(
         "UPDATE merch_products SET reserved_quantity = GREATEST(0, reserved_quantity - $2), updated_at = NOW() WHERE id = $1",
@@ -323,10 +340,14 @@ export async function getMerchOrder(orderId: string) {
   const result = await database.query<OrderRow>("SELECT * FROM merch_orders WHERE id = $1", [orderId]);
   const order = result.rows[0];
   if (!order) return null;
+  const tickets = await database.query<{ code: string }>("SELECT code FROM event_tickets WHERE order_id = $1 ORDER BY created_at, id", [orderId]);
   return {
     id: order.id,
     order_code: order.order_code,
     status: order.status,
+    kind: order.kind,
+    event_id: order.event_id,
+    ticket_codes: tickets.rows.map((ticket) => ticket.code),
     subtotal: order.subtotal,
     shipping_fee: order.shipping_fee,
     discount_code_amount: order.discount_code_amount,
@@ -345,6 +366,7 @@ export async function setMerchOrderStatus(orderId: string, status: "done" | "can
     const order = result.rows[0];
     if (!order) throw new OrderError("Order not found.", 404);
     if (order.status === status) return order;
+    if (status === "done" && new Date(order.expires_at).getTime() <= Date.now()) throw new OrderError("Order has expired.", 409);
     if (order.status === "done" || order.status === "cancel" || order.status === "drop") {
       throw new OrderError("This order has already been completed or closed.", 409);
     }
@@ -360,11 +382,12 @@ export async function simulateOrderPayment(orderId: string) {
   return { id: order.id, order_code: order.order_code, status: order.status };
 }
 
-export async function listAdminOrders() {
+export async function listAdminOrders(kind: "merch" | "ticket" | "all" = "merch") {
   await expireStaleOrders();
   const database = await getDatabase();
   const orders = await database.query<OrderRow>(
-    "SELECT * FROM merch_orders ORDER BY created_at DESC LIMIT 300",
+    "SELECT * FROM merch_orders WHERE ($1 = 'all' OR kind = $1) ORDER BY created_at DESC LIMIT 300",
+    [kind],
   );
   if (!orders.rows.length) return [];
   const items = await database.query<Record<string, unknown>>(
@@ -376,5 +399,6 @@ export async function listAdminOrders() {
     const orderId = String(item.order_id);
     itemsByOrder.set(orderId, [...(itemsByOrder.get(orderId) ?? []), item]);
   }
-  return orders.rows.map((order) => ({ ...order, items: itemsByOrder.get(order.id) ?? [] }));
+  const tickets = await database.query<{ order_id: string; code: string }>("SELECT order_id, code FROM event_tickets WHERE order_id = ANY($1::uuid[]) ORDER BY created_at, id", [orders.rows.map((order) => order.id)]);
+  return orders.rows.map((order) => ({ ...order, items: itemsByOrder.get(order.id) ?? [], ticket_codes: tickets.rows.filter((ticket) => ticket.order_id === order.id).map((ticket) => ticket.code) }));
 }

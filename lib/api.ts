@@ -1,5 +1,6 @@
 import { parse } from "valibot";
 import { DEMO_MODE, createMockOrder, getMockDiscount, getMockOrder, settleMockOrder } from "./mock-store";
+import type { TicketOrderPayload } from "./ticket-data";
 import {
   merchOrderSchema,
   discountCodeSchema,
@@ -53,6 +54,9 @@ export type CreateMerchOrderResponse = {
   id: string;
   order_code?: string;
   status: OrderStatus;
+  kind?: "merch" | "ticket";
+  event_id?: string | null;
+  ticket_codes?: string[];
   subtotal?: number;
   shipping_fee?: number;
   discount_code_amount?: number;
@@ -312,4 +316,16 @@ export async function simulateMerchPayment(orderId: string) {
     throw new Error(payload?.error || "Không thể hoàn tất thanh toán mô phỏng.");
   }
   return response.json();
+}
+
+export async function createTicketOrder(body: TicketOrderPayload): Promise<CreateMerchOrderResponse> {
+  if (DEMO_MODE) {
+    return createMockOrder({ ...body, shipping_method: "pickup_event", shipping_fee: 0, subtotal: 0, discount_combo: 0, discount_code_amount: 0, total: 0,
+      order_items: body.items.map((item) => ({ merch_id: item.ticket_type_id, merch_name: "", quantity: item.quantity, unit_price: 0, subtotal: 0 })),
+    }, "ticket", body.event_id);
+  }
+  const response = await fetch("/api/tickets/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "Không đặt được vé.");
+  return result;
 }

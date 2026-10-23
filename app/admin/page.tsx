@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Box, Check, ClipboardList, LogOut, PackagePlus, RefreshCw, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Box, CalendarDays, Check, ClipboardList, LogOut, Menu, PackagePlus, RefreshCw, Save, ShieldCheck, Ticket, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DEMO_MODE, mockAdminRequest } from "@/lib/mock-store";
+import AdminEvents from "@/components/adminEvents";
+import type { TicketEvent } from "@/lib/ticket-data";
 
 type Product = {
   id: string;
@@ -30,6 +32,9 @@ type OrderItem = {
 };
 
 type Order = {
+  kind?: "merch" | "ticket";
+  event_id?: string | null;
+  ticket_codes?: string[];
   id: string;
   order_code: string;
   customer_name: string;
@@ -45,7 +50,13 @@ type Order = {
   items: OrderItem[];
 };
 
-type Tab = "orders" | "products";
+type Tab = "orders" | "products" | "events" | "ticket-orders";
+const navigation = [
+  { id: "orders", label: "Đơn merch", icon: ClipboardList },
+  { id: "products", label: "Sản phẩm & kho", icon: Box },
+  { id: "events", label: "Sự kiện & hạng vé", icon: CalendarDays },
+  { id: "ticket-orders", label: "Đơn vé & vé đã phát", icon: Ticket },
+] as const;
 
 const money = (value: number) => `${new Intl.NumberFormat("vi-VN").format(value)} đ`;
 const statusName: Record<string, string> = {
@@ -84,6 +95,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("orders");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [events, setEvents] = useState<TicketEvent[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,12 +107,14 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const [nextProducts, nextOrders] = await Promise.all([
+      const [nextProducts, nextOrders, nextEvents] = await Promise.all([
         api<Product[]>("/api/admin/products"),
-        api<Order[]>("/api/admin/orders"),
+        api<Order[]>("/api/admin/orders?kind=all"),
+        api<TicketEvent[]>("/api/admin/events"),
       ]);
       setProducts(nextProducts);
       setOrders(nextOrders);
+      setEvents(nextEvents);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Không tải được dữ liệu.");
     } finally {
@@ -108,6 +123,8 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    const section = new URLSearchParams(window.location.search).get("section");
+    if (navigation.some((item) => item.id === section)) setTab(section as Tab);
     void api<{ configured: boolean; authenticated: boolean }>("/api/admin/session")
       .then((session) => {
         setConfigured(session.configured);
@@ -124,6 +141,7 @@ export default function AdminPage() {
     revenue: orders.filter((order) => order.status === "done").reduce((sum, order) => sum + Number(order.total), 0),
     products: products.filter((product) => product.active).length,
   }), [orders, products]);
+  const visibleOrders = orders.filter((order) => (order.kind ?? "merch") === (tab === "ticket-orders" ? "ticket" : "merch"));
 
   const login = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -146,6 +164,8 @@ export default function AdminPage() {
     setAuthenticated(false);
     setProducts([]);
     setOrders([]);
+    setEvents([]);
+    setSidebarOpen(false);
   };
 
   const saveProduct = async (product: Product) => {
@@ -207,11 +227,21 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#F4F2F0] text-[#171717]">
+      {authenticated && <>
+        {sidebarOpen && <button type="button" aria-label="Đóng menu quản trị" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/50 md:hidden" />}
+        <aside aria-label="Menu quản trị" className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 bg-neutral-950 text-white transition-transform md:visible md:translate-x-0 ${sidebarOpen ? "visible translate-x-0" : "invisible -translate-x-full"}`}>
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-6"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-pink-500">Indi Admin</p><p className="mt-2 font-retroguard text-2xl">MERCH & VÉ</p></div><Button type="button" size="icon" variant="ghost" aria-label="Đóng menu" className="md:hidden" onClick={() => setSidebarOpen(false)}><X /></Button></div>
+          <nav className="flex-1 space-y-2 p-4">{navigation.map((item) => <button key={item.id} type="button" aria-current={tab === item.id ? "page" : undefined} onClick={() => { setTab(item.id); setSidebarOpen(false); setError(null); setNotice(null); }} className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold ${tab === item.id ? "bg-pink-600 text-white" : "text-neutral-400 hover:bg-white/10 hover:text-white"}`}><item.icon className="size-5" />{item.label}</button>)}</nav>
+          <div className="space-y-2 border-t border-white/10 p-4"><Link href="/" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Box className="size-4" />Trang bán merch</Link><Link href="/tickets" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-neutral-400 hover:bg-white/10"><Ticket className="size-4" />Trang bán vé</Link><Button type="button" variant="ghost" onClick={() => void logout()} className="w-full justify-start gap-3 px-4 text-neutral-400"><LogOut className="size-4" />Đăng xuất</Button></div>
+        </aside>
+      </>}
+      <div className={authenticated ? "md:pl-64" : ""}>
       <header className="border-b border-black/10 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
           <div className="flex items-center gap-3">
+            {authenticated && <Button type="button" variant="ghost" size="icon" aria-label="Mở menu quản trị" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)} className="md:hidden"><Menu /></Button>}
             <div className="flex size-10 items-center justify-center bg-[#171717] text-white"><ShieldCheck className="size-5" /></div>
-            <div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#FF017E]">Indi Merch</p><h1 className="font-retroguard text-xl">QUẢN LÝ CỬA HÀNG</h1></div>
+            <div><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#FF017E]">Indi Admin</p><h1 className="font-retroguard text-xl">QUẢN LÝ MERCH & VÉ</h1></div>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/" className="hidden items-center gap-2 px-3 py-2 text-sm font-medium sm:flex"><ArrowLeft className="size-4" />Về cửa hàng</Link>
@@ -225,7 +255,7 @@ export default function AdminPage() {
           <section className="w-full border border-black/10 bg-white p-7 shadow-sm md:p-9">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF017E]">Khu vực riêng</p>
             <h2 className="mt-2 font-retroguard text-3xl">ĐĂNG NHẬP ADMIN</h2>
-            <p className="mt-3 text-sm leading-6 text-[#666]">Quản lý sản phẩm, tồn kho và đơn hàng merch.</p>
+            <p className="mt-3 text-sm leading-6 text-[#666]">Quản lý merch, sự kiện, hạng vé và đơn hàng.</p>
             {DEMO_MODE ? (
               <div className="mt-6 space-y-4">
                 <Button type="button" variant="outline" disabled={busy === "login"} onClick={() => void login()} className="h-12 w-full gap-3 font-semibold">
@@ -250,7 +280,7 @@ export default function AdminPage() {
         <div className="mx-auto max-w-7xl px-4 py-7 md:px-8 md:py-10">
           {DEMO_MODE && <p className="mb-5 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">Google Demo · dữ liệu thử được lưu trên trình duyệt này. Mua merch bằng cùng trình duyệt để xem đơn tại đây.</p>}
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF017E]">Tổng quan</p><h2 className="mt-1 font-retroguard text-3xl md:text-4xl">BẢNG ĐIỀU KHIỂN</h2></div>
+            <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF017E]">Quản lý cửa hàng & sự kiện</p><h2 className="mt-1 font-retroguard text-3xl md:text-4xl">{navigation.find((item) => item.id === tab)?.label}</h2></div>
             <Button type="button" variant="outline" onClick={() => void loadData()} disabled={loading} className="gap-2"><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Làm mới</Button>
           </div>
 
@@ -263,24 +293,19 @@ export default function AdminPage() {
             ].map((metric) => <div key={metric.label} className="border border-black/10 bg-white p-5"><div className="flex items-center justify-between text-xs font-semibold text-[#777]"><span>{metric.label}</span><metric.icon className="size-4 text-[#FF017E]" /></div><p className="mt-3 text-2xl font-bold">{metric.value}</p></div>)}
           </div>
 
-          <div className="mt-7 flex gap-2 border-b border-black/15">
-            <button type="button" onClick={() => setTab("orders")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold ${tab === "orders" ? "border-[#FF017E] text-[#FF017E]" : "border-transparent text-[#666]"}`}><ClipboardList className="size-4" />Đơn hàng</button>
-            <button type="button" onClick={() => setTab("products")} className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold ${tab === "products" ? "border-[#FF017E] text-[#FF017E]" : "border-transparent text-[#666]"}`}><Box className="size-4" />Sản phẩm & kho</button>
-          </div>
-
           {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
           {notice && <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{notice}</div>}
 
-          {tab === "orders" ? (
+          {tab === "events" ? <AdminEvents events={events} request={api} onSaved={loadData} /> : tab === "orders" || tab === "ticket-orders" ? (
             <section className="mt-5 space-y-3">
-              {loading ? <div className="bg-white p-10 text-center text-sm text-[#777]">Đang tải đơn hàng…</div> : orders.length === 0 ? <div className="bg-white p-10 text-center text-sm text-[#777]">Chưa có đơn hàng nào.</div> : orders.map((order) => (
+              {loading ? <div className="bg-white p-10 text-center text-sm text-[#777]">Đang tải đơn hàng…</div> : visibleOrders.length === 0 ? <div className="bg-white p-10 text-center text-sm text-[#777]">Chưa có đơn hàng nào.</div> : visibleOrders.map((order) => (
                 <article key={order.id} className="border border-black/10 bg-white p-4 md:p-5">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex flex-wrap items-center gap-2"><h3 className="font-bold">{order.order_code}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${order.status === "done" ? "bg-green-100 text-green-800" : order.status === "init" || order.status === "in_progress" ? "bg-amber-100 text-amber-900" : "bg-gray-100 text-gray-600"}`}>{statusName[order.status] ?? order.status}</span></div>
                       <p className="mt-2 text-sm font-medium">{order.customer_name} · {order.customer_phone}</p>
                       <p className="text-sm text-[#666]">{order.customer_email}</p>
-                      <p className="mt-1 text-xs text-[#888]">{order.customer_address || "Nhận tại cửa hàng"} · {new Date(order.created_at).toLocaleString("vi-VN")}</p>
+                      <p className="mt-1 text-xs text-[#888]">{order.kind === "ticket" ? events.find((event) => event.id === order.event_id)?.name ?? "Vé điện tử" : order.customer_address || "Nhận tại cửa hàng"} · {new Date(order.created_at).toLocaleString("vi-VN")}</p>
                     </div>
                     <div className="text-left sm:text-right"><p className="text-xl font-bold text-[#FF017E]">{money(Number(order.total))}</p><p className="mt-1 text-xs text-[#777]">Tạm tính {money(Number(order.subtotal))} · Ship {money(Number(order.shipping_fee))}</p></div>
                   </div>
@@ -288,6 +313,7 @@ export default function AdminPage() {
                     <p className="text-sm text-[#555]">{order.items.map((item) => `${item.merch_name}${[item.selected_color, item.selected_size, item.selected_type].filter(Boolean).length ? ` (${[item.selected_color, item.selected_size, item.selected_type].filter(Boolean).join(" / ")})` : ""} × ${item.quantity}`).join(" · ")}</p>
                     {(order.status === "init" || order.status === "in_progress") && <div className="flex shrink-0 gap-2"><Button type="button" variant="outline" disabled={busy === order.id} onClick={() => void updateOrder(order, "cancel")} className="border-red-200 text-red-700">Hủy đơn</Button><Button type="button" disabled={busy === order.id} onClick={() => void updateOrder(order, "done")} className="bg-[#171717] text-white hover:bg-black"><Check className="mr-2 size-4" />Xác nhận đã thu</Button></div>}
                   </div>
+                  {!!order.ticket_codes?.length && <div className="mt-4 rounded-lg bg-neutral-50 p-4"><p className="mb-2 text-xs font-bold uppercase text-pink-600">Vé đã phát hành ({order.ticket_codes.length})</p><div className="grid gap-2 sm:grid-cols-2">{order.ticket_codes.map((code) => <code key={code} className="break-all text-xs">{code}</code>)}</div></div>}
                 </article>
               ))}
             </section>
@@ -324,6 +350,7 @@ export default function AdminPage() {
           )}
         </div>
       )}
+      </div>
     </main>
   );
 }

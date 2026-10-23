@@ -105,7 +105,7 @@ async function syncDirectusCatalog(
          directus_synced = TRUE,
          active = EXCLUDED.active, colors = EXCLUDED.colors, sizes = EXCLUDED.sizes,
          types = EXCLUDED.types, images = EXCLUDED.images, color_images = EXCLUDED.color_images,
-         updated_at = NOW()`,
+         updated_at = NOW() WHERE merch_products.kind = 'merch'`,
       [item.id, item.name.trim(), price, item.description ?? "", initialStock, active,
         item.colors ?? [], item.sizes ?? [], item.types ?? [], images,
         JSON.stringify(item.colorImages ?? {})],
@@ -125,7 +125,7 @@ export async function fetchMerch(): Promise<MerchItem[]> {
     `SELECT id, name, price, description, stock_quantity, reserved_quantity,
             active, colors, sizes, types, images, color_images
        FROM merch_products
-      WHERE active = TRUE
+      WHERE active = TRUE AND kind = 'merch'
       ORDER BY created_at, name`,
   );
   const products = result.rows.map(mapProduct);

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const result = await database.query(
       `SELECT id, name, price, description, stock_quantity, reserved_quantity, active,
               colors, sizes, types, images, color_images, created_at, updated_at
-         FROM merch_products ORDER BY created_at, name`,
+         FROM merch_products WHERE kind = 'merch' ORDER BY created_at, name`,
     );
     return NextResponse.json(result.rows, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

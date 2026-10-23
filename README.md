@@ -53,3 +53,17 @@ For a UI-only Preview without a database, set `MERCH_DATA_SOURCE=mock` and leave
 For the complete browser demo, set `NEXT_PUBLIC_DEMO_MODE=true` and `MERCH_DATA_SOURCE=mock`, then rebuild. All six products are available; checkout, the `INDI10` discount, simulated payment, and admin product/order management use localStorage in the same browser. In `/admin`, choose **Tiếp tục với Google (Demo)** to enter the mock dashboard. This is simulated sign-in and payment; it does not contact Google or a bank. Data survives page reloads and is limited to that browser and Preview hostname. Set `NEXT_PUBLIC_DEMO_MODE=false` for the PostgreSQL-backed application.
 
 `PAYMENT_SIMULATION=true` enables the demo payment path. It reveals the QR after three seconds and marks the order paid three seconds later. The displayed QR encodes a demo URI and does not transfer money. Set this to `false` when a real payment provider is connected.
+
+## Ticket sales and the shared admin
+
+Open `/tickets` to select an event, ticket tiers, quantities, and buyer details. Checkout uses the same QR simulation and stock reservation flow as merch. Each paid ticket receives its own code and QR. `/admin` has a responsive sidebar for merch orders, products, events/ticket tiers, and ticket orders. Admins can add events and tiers, change prices/capacity, toggle sales, and view issued ticket codes.
+
+`TICKET_DATA_SOURCE=postgres|mock|directus` selects the ticket catalog independently of `MERCH_DATA_SOURCE`:
+
+- `postgres`: read events and ticket stock from PostgreSQL. Run `npm run db:setup` to apply the schema and seed the sample event and three ticket tiers. Orders, held stock, and issued ticket codes are stored in PostgreSQL.
+- `mock`: use the sample event catalog. With `NEXT_PUBLIC_DEMO_MODE=true`, ticket orders, issued codes, and admin edits persist in the same browser alongside merch demo data. Without browser demo mode, placing orders still requires the seeded PostgreSQL database.
+- `directus`: import events and ticket types into PostgreSQL using `DIRECTUS_URL` and `DIRECTUS_TOKEN`. Collection names default to `events` and `ticket_types`; override them with `TICKET_DIRECTUS_EVENTS_COLLECTION` and `TICKET_DIRECTUS_TYPES_COLLECTION`.
+
+Directus events require `id`, `name`, `venue` (or `location`), `starts_at` (or `start_time`), and `active` or `status=published|active|available`; `description` is optional. Ticket types require `id`, `event_id` (ID or an expanded relation), `name`, `price`, `quantity` (or `stock_quantity`), and `active` or `status`. Catalog IDs are namespaced as `event-<id>` and `ticket-<id>`. The first import seeds stock; subsequent imports preserve SQL stock/reservations while refreshing source-owned catalog details. Tickets and merch have separate catalog/order kinds and cannot be mixed in one order. Each ticket order belongs to one event.
+
+The current ticket QR identifies an issued ticket; an admission/check-in scanner and email delivery are not implemented. In browser demo mode, Google sign-in and payment remain simulated, and existing merch demo records are preserved when ticket data is initialized.

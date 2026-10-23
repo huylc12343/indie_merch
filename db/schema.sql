@@ -73,3 +73,26 @@ CREATE TABLE IF NOT EXISTS merch_order_items (
 CREATE INDEX IF NOT EXISTS merch_orders_created_at_idx ON merch_orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS merch_orders_status_idx ON merch_orders (status);
 CREATE INDEX IF NOT EXISTS merch_order_items_order_id_idx ON merch_order_items (order_id);
+
+CREATE TABLE IF NOT EXISTS ticket_events (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  venue TEXT NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE merch_products ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'merch' CHECK (kind IN ('merch', 'ticket'));
+ALTER TABLE merch_products ADD COLUMN IF NOT EXISTS event_id TEXT REFERENCES ticket_events(id);
+ALTER TABLE merch_orders ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'merch' CHECK (kind IN ('merch', 'ticket'));
+ALTER TABLE merch_orders ADD COLUMN IF NOT EXISTS event_id TEXT REFERENCES ticket_events(id);
+CREATE TABLE IF NOT EXISTS event_tickets (
+  id UUID PRIMARY KEY,
+  order_id UUID NOT NULL REFERENCES merch_orders(id),
+  product_id TEXT NOT NULL REFERENCES merch_products(id),
+  code TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS event_tickets_order_idx ON event_tickets(order_id);
+CREATE INDEX IF NOT EXISTS ticket_products_event_idx ON merch_products(event_id) WHERE kind = 'ticket';

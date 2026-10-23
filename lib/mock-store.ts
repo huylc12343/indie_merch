@@ -2,12 +2,14 @@ import { localMerch } from "./localMerch";
 import type { CreateMerchOrderPayload, CreateMerchOrderResponse } from "./api";
 import type { DiscountCodeOutput } from "./schema";
 import type { MerchItem } from "./types";
+import { localEvents, validateTicketEvent, type TicketEvent } from "./ticket-data";
 
 export const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 const STORE_KEY = "indie-merch-demo-v1";
 const SESSION_KEY = "indie-merch-demo-admin";
 
 type Product = {
+  kind: "merch" | "ticket"; event_id: string | null;
   id: string; name: string; price: number; description: string;
   stock_quantity: number; reserved_quantity: number; active: boolean;
   colors: string[]; sizes: string[]; types: string[]; images: string[];
@@ -18,7 +20,7 @@ type Order = CreateMerchOrderResponse & {
   customer_name: string; customer_phone: string; customer_email: string;
   customer_address: string; created_at: string; items: Item[];
 };
-type Store = { products: Product[]; orders: Order[] };
+type Store = { products: Product[]; orders: Order[]; events?: TicketEvent[] };
 
 function save(store: Store) {
   localStorage.setItem(STORE_KEY, JSON.stringify(store));
@@ -28,6 +30,7 @@ function load(): Store {
   const stored = localStorage.getItem(STORE_KEY);
   const store: Store = stored ? JSON.parse(stored) : {
     products: localMerch.map((item) => ({
+      kind: "merch", event_id: null,
       id: item.id, name: item.name, price: item.price, description: item.description ?? "",
       stock_quantity: 100, reserved_quantity: 0, active: true,
       colors: item.colors ?? [], sizes: item.sizes ?? [], types: item.types ?? [],
@@ -36,8 +39,14 @@ function load(): Store {
     })),
     orders: [],
   };
+  for (const product of store.products) { product.kind ??= "merch"; product.event_id ??= null; }
+  if (!store.events) {
+    store.events = structuredClone(localEvents);
+    for (const event of store.events) for (const type of event.ticket_types) store.products.push({ ...type, kind: "ticket", colors: [], sizes: [], types: [], images: [], color_images: {} });
+  }
   for (const order of store.orders) {
-    if (order.status === "init" && order.expires_at && Date.parse(order.expires_at) <= Date.now()) {
+    order.kind ??= "merch";
+    if ((order.status === "init" || order.status === "in_progress") && order.expires_at && Date.parse(order.expires_at) <= Date.now()) {
       transition(store, order, "drop");
     }
   }
@@ -55,10 +64,11 @@ function transition(store: Store, order: Order, status: "done" | "cancel" | "dro
     if (status === "done") product.stock_quantity -= item.quantity;
   }
   order.status = status;
+  if (status === "done" && order.kind === "ticket") order.ticket_codes = order.items.flatMap((item) => Array.from({ length: item.quantity }, () => `TKT-${crypto.randomUUID().toUpperCase()}`));
 }
 
 export function getMockCatalog(): MerchItem[] {
-  return load().products.filter((product) => product.active).map((product) => ({
+  return load().products.filter((product) => product.kind === "merch" && product.active).map((product) => ({
     id: product.id, name: product.name, price: product.price, description: product.description,
     quantity: product.stock_quantity - product.reserved_quantity,
     soldOut: product.stock_quantity <= product.reserved_quantity,
@@ -78,8 +88,9 @@ export function getMockDiscount(code: string): DiscountCodeOutput | null {
   };
 }
 
-export function createMockOrder(body: CreateMerchOrderPayload): Order {
+export function createMockOrder(body: CreateMerchOrderPayload, kind: "merch" | "ticket" = "merch", eventId?: string): Order {
   const store = load();
+  if (kind === "ticket" && (!store.events?.some((event) => event.id === eventId && event.active) || body.shipping_method !== "pickup_event")) throw new Error("Sự kiện không mở bán.");
   if (!body.customer_name.trim() || !body.customer_phone.trim() || !body.customer_email.trim()) {
     throw new Error("Vui lòng điền đủ thông tin khách hàng.");
   }
@@ -87,7 +98,7 @@ export function createMockOrder(body: CreateMerchOrderPayload): Order {
   if (body.shipping_method === "delivery" && !body.customer_address?.trim()) throw new Error("Vui lòng nhập địa chỉ nhận hàng.");
   const needed = new Map<string, number>();
   const items: Item[] = body.order_items.map((item) => {
-    const product = store.products.find((product) => product.id === item.merch_id && product.active);
+    const product = store.products.find((product) => product.id === item.merch_id && product.active && product.kind === kind && (kind !== "ticket" || product.event_id === eventId));
     if (!product || !Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 40) {
       throw new Error("Sản phẩm hoặc số lượng không hợp lệ.");
     }
@@ -114,6 +125,7 @@ export function createMockOrder(body: CreateMerchOrderPayload): Order {
   const total = Math.max(0, subtotal + shipping_fee - discount_code_amount);
   const id = crypto.randomUUID();
   const order: Order = {
+    kind, event_id: kind === "ticket" ? eventId : null, ticket_codes: [],
     id, order_code: `DEMO-${id.slice(0, 8).toUpperCase()}`, status: "init",
     customer_name: body.customer_name, customer_phone: body.customer_phone,
     customer_email: body.customer_email, customer_address: body.customer_address ?? "",
@@ -146,6 +158,8 @@ export function settleMockOrder(id: string, status: "done" | "cancel" = "done"):
 }
 
 export function mockAdminRequest(url: string, init?: RequestInit): unknown {
+  const query = new URL(url, "https://demo.local");
+  url = query.pathname;
   const method = init?.method ?? "GET";
   const body = typeof init?.body === "string" ? JSON.parse(init.body) : {};
   if (url === "/api/admin/session") {
@@ -158,14 +172,32 @@ export function mockAdminRequest(url: string, init?: RequestInit): unknown {
   }
   if (localStorage.getItem(SESSION_KEY) !== "google-demo") throw new Error("Vui lòng đăng nhập Google Demo.");
   const store = load();
-  if (url === "/api/admin/orders" && method === "GET") return store.orders;
+  if (url === "/api/admin/orders" && method === "GET") return store.orders.filter((order) => query.searchParams.get("kind") === "all" || order.kind === (query.searchParams.get("kind") ?? "merch"));
+  if (url === "/api/admin/events" && method === "GET") return getMockEvents(true);
+  if ((url === "/api/admin/events" && method === "POST") || (url.startsWith("/api/admin/events/") && method === "PATCH")) {
+    const id = method === "POST" ? crypto.randomUUID() : decodeURIComponent(url.split("/").pop()!);
+    const event = validateTicketEvent({ ...body, id });
+    const previousEvent = store.events!.findIndex((item) => item.id === id);
+    if (method === "PATCH" && previousEvent < 0) throw new Error("Không tìm thấy sự kiện.");
+    for (const type of event.ticket_types) {
+      const previous = store.products.find((product) => product.id === type.id);
+      if (previous && (previous.kind !== "ticket" || previous.event_id !== id)) throw new Error("ID hạng vé đã được sử dụng.");
+      if (previous && type.stock_quantity < previous.reserved_quantity) throw new Error("Tồn kho không được thấp hơn số đang giữ chỗ.");
+      if (previous) Object.assign(previous, { ...type, reserved_quantity: previous.reserved_quantity });
+      else store.products.push({ ...type, kind: "ticket", colors: [], sizes: [], types: [], images: [], color_images: {} });
+    }
+    for (const product of store.products) if (product.event_id === id && !event.ticket_types.some((type) => type.id === product.id)) product.active = false;
+    if (previousEvent < 0) store.events!.push(event); else store.events![previousEvent] = event;
+    save(store);
+    return getMockEvents(true).find((item) => item.id === id);
+  }
   if (url.startsWith("/api/admin/orders/") && method === "PATCH") {
     if (body.status !== "done" && body.status !== "cancel") throw new Error("Trạng thái không hợp lệ.");
     return settleMockOrder(decodeURIComponent(url.split("/").pop()!), body.status);
   }
-  if (url === "/api/admin/products" && method === "GET") return store.products;
+  if (url === "/api/admin/products" && method === "GET") return store.products.filter((product) => product.kind === "merch");
   if ((url === "/api/admin/products" && method === "POST") || (url.startsWith("/api/admin/products/") && method === "PATCH")) {
-    const product = method === "PATCH" ? store.products.find((product) => product.id === decodeURIComponent(url.split("/").pop()!)) : undefined;
+    const product = method === "PATCH" ? store.products.find((product) => product.kind === "merch" && product.id === decodeURIComponent(url.split("/").pop()!)) : undefined;
     if (method === "PATCH" && !product) throw new Error("Không tìm thấy sản phẩm.");
     if (typeof body.name !== "string" || !body.name.trim() || !Number.isSafeInteger(body.price) || body.price < 0 || !Number.isSafeInteger(body.stock_quantity) || body.stock_quantity < (product?.reserved_quantity ?? 0)) {
       throw new Error("Tên, giá hoặc tồn kho không hợp lệ.");
@@ -174,10 +206,17 @@ export function mockAdminRequest(url: string, init?: RequestInit): unknown {
       Object.assign(product, { name: body.name.trim(), price: body.price, stock_quantity: body.stock_quantity, active: Boolean(body.active) });
     } else {
       if (typeof body.image !== "string" || !body.image.startsWith("/")) throw new Error("Đường dẫn ảnh phải bắt đầu bằng /.");
-      store.products.push({ id: crypto.randomUUID(), name: body.name.trim(), price: body.price, stock_quantity: body.stock_quantity, reserved_quantity: 0, active: true, description: body.description ?? "", images: [body.image], colors: [], sizes: [], types: [], color_images: {} });
+      store.products.push({ id: crypto.randomUUID(), kind: "merch", event_id: null, name: body.name.trim(), price: body.price, stock_quantity: body.stock_quantity, reserved_quantity: 0, active: true, description: body.description ?? "", images: [body.image], colors: [], sizes: [], types: [], color_images: {} });
     }
     save(store);
     return product ?? store.products.at(-1);
   }
   throw new Error("Thao tác demo chưa được hỗ trợ.");
+}
+
+export function getMockEvents(admin = false): TicketEvent[] {
+  const store = load();
+  return store.events!.filter((event) => admin || event.active).map((event) => ({ ...event,
+    ticket_types: store.products.filter((product) => product.kind === "ticket" && product.event_id === event.id && (admin || product.active)).map((product) => ({ id: product.id, event_id: event.id, name: product.name, price: product.price, description: product.description, stock_quantity: product.stock_quantity, reserved_quantity: product.reserved_quantity, active: product.active })),
+  }));
 }

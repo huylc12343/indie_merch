@@ -11,3 +11,13 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO merch_discounts (code, type, value, min_order_value, max_uses, status)
 VALUES ('INDI10', 'percentage', 10, 100000, NULL, 'active')
 ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO ticket_events (id, name, venue, starts_at, description)
+VALUES ('indie-live-demo', 'In-đỉ In-đi · Indie Live', 'Hà Nội · Sân khấu Indie', '2026-12-20T19:00:00+07:00', 'Một đêm nhạc dành cho những tâm hồn đồng điệu.')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO merch_products (id, name, price, description, stock_quantity, kind, event_id)
+VALUES
+  ('ticket-early', 'Early Bird', 199000, 'Vé vào cửa · số lượng giới hạn', 100, 'ticket', 'indie-live-demo'),
+  ('ticket-standard', 'Standard', 299000, 'Vé vào cửa đêm nhạc', 200, 'ticket', 'indie-live-demo'),
+  ('ticket-vip', 'VIP', 499000, 'Khu vực ưu tiên gần sân khấu', 50, 'ticket', 'indie-live-demo')
+ON CONFLICT (id) DO NOTHING;

@@ -48,6 +48,8 @@ export default function Navbar() {
 
           {/* Cart */}
           <div className="shrink-0 flex items-center">
+            <Link href="/" className="mr-4 text-sm font-semibold text-black hover:text-pink-600">Merch</Link>
+            <Link href="/tickets" className="mr-4 text-sm font-semibold text-black hover:text-pink-600">Mua vé</Link>
             {/* Desktop */}
             <Button
               className="hidden md:flex px-6 py-4 bg-[#171717] text-white font-semibold text-base leading-6 hover:bg-black/80 cursor-pointer rounded-none h-auto gap-2"
