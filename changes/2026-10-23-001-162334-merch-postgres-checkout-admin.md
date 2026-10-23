@@ -1,7 +1,7 @@
 # Merch PostgreSQL checkout and admin
 
 - Created: 2026-10-23T16:23:34+07:00
-- Updated: 2026-10-23T16:38:33+07:00
+- Updated: 2026-10-23T16:45:07+07:00
 
 ## Request
 
@@ -16,6 +16,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Updated README setup and configuration notes.
 - Prepared the `preview/merch-postgres-admin` branch for the requested Git push and Vercel Preview deployment.
 - Added a UI-only mock catalog when `MERCH_DATA_SOURCE=mock` and `DATABASE_URL` is unset, following the owner's request to review the interface before connecting a cloud database.
+- Replaced hardcoded bank details in the legacy ticket demo with DEMO placeholders and a non-banking demo QR URI after deployment review flagged the sensitive values. Docker Compose is excluded from the Vercel source upload.
 
 ## Important files
 
@@ -37,6 +38,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - `npm run build` and `npx tsc --noEmit` passed during earlier verification of this implementation.
 - Standalone runtime smoke check served `/admin` and verified the configured admin login/session flow.
 - `git diff --check` passed on 2026-10-23.
+- TypeScript and the changed-file whitespace check passed again after the UI Preview and demo-payment adjustments.
 
 ## Remaining risks
 

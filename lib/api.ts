@@ -132,21 +132,19 @@ export async function createOrder(
   body: CreateOrderPayload,
 ): Promise<CreateOrderResponse> {
   await new Promise((resolve) => setTimeout(resolve, 1000));
+  const id = crypto.randomUUID();
 
   return {
-    id: crypto.randomUUID(),
-
+    id,
     event_id: body.event_id,
-
     payment_info: {
-      account_name: "NGUYEN QUANG HUY",
-      account_number: "8848838875",
+      account_name: "INDI MERCH DEMO",
+      account_number: "DEMO-0000",
       amount: body.total,
-      bin: "970418",
+      bin: "DEMO",
       description: `THANHTOAN ${Date.now()}`,
-      qr_code: `https://img.vietqr.io/image/970418-8848838875.png`,
+      qr_code: `indie-merch://demo-payment?order_id=${id}`,
     },
-
     expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   };
 }
