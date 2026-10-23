@@ -16,7 +16,7 @@ const getImageUrl = (id: string) => {
   if (id.startsWith("/") || id.startsWith("http://") || id.startsWith("https://")) {
     return id;
   }
-  return `${process.env.NEXT_PUBLIC_BE_URL}/assets/${id}`;
+  return id;
 };
 export default function MerchInfo({ item }: { item: MerchItem }) {
   const [open, setOpen] = useState(false);

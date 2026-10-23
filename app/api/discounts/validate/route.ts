@@ -1,57 +1,52 @@
-// app/api/discount-codes/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { getDatabase } from "@/lib/db";
 
-const baseUrl = process.env.DIRECTUS_URL;
+export async function GET(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get("code")?.trim().toUpperCase();
+  if (!code) return NextResponse.json({ data: null });
 
-export async function GET(req: NextRequest) {
-  const code = req.nextUrl.searchParams.get("code");
+  try {
+    const database = await getDatabase();
+    const result = await database.query<{
+      code: string;
+      type: "fixed" | "percentage";
+      value: number;
+      min_order_value: number;
+      max_uses: number | null;
+      used_count: number;
+      reserved_uses: number;
+      expires_at: Date | null;
+      status: string;
+    }>("SELECT * FROM merch_discounts WHERE code = $1", [code]);
+    const discount = result.rows[0];
+    if (
+      !discount ||
+      discount.status !== "active" ||
+      (discount.expires_at && new Date(discount.expires_at).getTime() <= Date.now()) ||
+      (discount.max_uses !== null && discount.used_count + discount.reserved_uses >= discount.max_uses)
+    ) {
+      return NextResponse.json({ data: null });
+    }
 
-  if (!code) {
-    return NextResponse.json({ data: null });
-  }
-
-  const normalizedCode = code.trim().toUpperCase();
-
-  const response = await fetch(
-    `${baseUrl}/items/discount_codes?filter[code][_eq]=${encodeURIComponent(normalizedCode)}&fields=*`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.DIRECTUS_TOKEN}`,
+    return NextResponse.json({
+      data: {
+        id: randomUUID(),
+        code: discount.code,
+        type: discount.type,
+        value: Number(discount.value),
+        min_order_value: Number(discount.min_order_value),
+        max_uses: discount.max_uses,
+        used_count: Number(discount.used_count),
+        expires_at: discount.expires_at?.toISOString() ?? null,
+        status: "active",
+        date_created: new Date().toISOString(),
+        date_updated: null,
+        event_id: null,
       },
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: "Directus error" },
-      { status: response.status },
-    );
+    });
+  } catch (error) {
+    console.error("Discount lookup failed:", error);
+    return NextResponse.json({ error: "Could not validate discount code." }, { status: 503 });
   }
-
-  const payload = await response.json();
-
-  const item = payload.data?.[0];
-
-  // ❌ Không tồn tại
-  if (!item) {
-    return NextResponse.json({ error: "NOT_FOUND" });
-  }
-
-  // ❌ Hết hạn / không available
-  const validStatuses = ["available", "active"];
-  if (!validStatuses.includes(item.status)) {
-    return NextResponse.json({ error: "EXPIRED" });
-  }
-  const transformed = {
-    ...item,
-    id: crypto.randomUUID(),
-    value: Number(item.value),
-    min_order_value: Number(item.min_order_value ?? 150000), // 🔥 default 150k
-    used_count: Number(item.used_count ?? 0),
-    status: "active",
-    event_id: null,
-  };
-
-  return NextResponse.json({ data: transformed });
 }

@@ -30,6 +30,7 @@ export default function CheckoutPage() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isPollingEnabled, setIsPollingEnabled] = useState(false);
+  const [orderExpired, setOrderExpired] = useState(false);
   const [checkoutSource, setCheckoutSource] = useState<"cart" | "buynow">(
     "cart",
   );
@@ -161,18 +162,28 @@ export default function CheckoutPage() {
     fullName,
     phone,
     email,
+    shippingMethod,
     address: resolvedAddress,
     shippingFee: resolvedShippingFee,
     subtotal,
     showErrorToast,
-    onOrderCreated: () => {
+    onOrderCreated: (order) => {
+      setOrderExpired(false);
       // 🔥 snapshot FULL order
       setOrderSnapshot({
-        items: cartItems,
-        subtotal,
-        shippingFee: resolvedShippingFee,
-        discount: resolvedDiscountCodeAmount,
-        total: computedTotal,
+        items: cartItems.map((item) => {
+          const matched = order.order_items?.find((orderItem) =>
+            orderItem.merch_id === item.id &&
+            orderItem.selected_color === item.selectedColor &&
+            orderItem.selected_size === item.selectedSize &&
+            orderItem.selected_type === item.selectedType,
+          );
+          return matched ? { ...item, price: matched.unit_price } : item;
+        }),
+        subtotal: order.subtotal ?? subtotal,
+        shippingFee: order.shipping_fee ?? resolvedShippingFee,
+        discount: order.discount_code_amount ?? resolvedDiscountCodeAmount,
+        total: order.total ?? computedTotal,
       });
 
       setIsPollingEnabled(true);
@@ -189,6 +200,7 @@ export default function CheckoutPage() {
 
     onSuccess: (order) => {
       updateCreatedOrder?.(order);
+      setOrderExpired(false);
 
       setIsPollingEnabled(false);
 
@@ -204,12 +216,13 @@ export default function CheckoutPage() {
     },
 
     onExpired: () => {
+      setOrderExpired(true);
       setIsPollingEnabled(false);
       setIsPaymentModalOpen(false);
       toast.error("Đơn hàng đã hết hạn hoặc bị huỷ");
     },
 
-    pollingInterval: 5000,
+    pollingInterval: 1000,
   });
 
   // ================= ASIDE DATA =================
@@ -291,7 +304,13 @@ export default function CheckoutPage() {
             shippingFee={asideData.shippingFee}
             total={asideData.total}
             totalLabel={currentStep === 1 ? "Tạm tính" : "Tổng tiền"}
-            actionLabel={currentStep === 1 ? "Tiếp tục" : "Thanh toán"}
+            actionLabel={
+              currentStep === 1
+                ? "Tiếp tục"
+                : createdOrder && !orderExpired
+                  ? "Mở mã QR"
+                  : "Thanh toán"
+            }
             showActionButton={currentStep !== 3}
             showPolicyNote={currentStep === 2}
             actionDisabled={false}
@@ -302,7 +321,9 @@ export default function CheckoutPage() {
                     setCurrentStep(2);
                   }
                 : currentStep === 2
-                  ? handleCreateOrder
+                  ? createdOrder && !orderExpired
+                    ? () => setIsPaymentModalOpen(true)
+                    : handleCreateOrder
                   : undefined
             }
           />

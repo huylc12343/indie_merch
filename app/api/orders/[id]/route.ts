@@ -1,27 +1,18 @@
 import { NextResponse } from "next/server";
+import { getMerchOrder } from "@/lib/orders";
 
 export async function GET(
-  _req: Request,
-  context: {
-    params: Promise<{ id: string }>;
-  }
+  _request: Request,
+  context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await context.params;
-
-  const baseUrl = process.env.NEXT_PUBLIC_BE_URL;
-
-  const res = await fetch(`${baseUrl}/orders/${id}`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: "Failed to fetch order" },
-      { status: res.status }
-    );
+  try {
+    const { id } = await context.params;
+    const order = await getMerchOrder(id);
+    if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    return NextResponse.json(order, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not load order.";
+    console.error("Get merch order failed:", error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const data = await res.json();
-
-  return NextResponse.json(data);
 }

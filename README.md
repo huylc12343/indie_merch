@@ -35,17 +35,17 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Merchandise data source
+## Merch store and PostgreSQL
 
-The catalog uses local data by default, so the product list and images work without a backend. Product details are in `lib/localMerch.ts`, and optimized product images are in `public/merch`.
+The catalog, reservations, discounts, and orders use PostgreSQL. `MERCH_DATA_SOURCE` is configurable in `.env.local`: `postgres` reads the SQL catalog (default), `mock` uses bundled sample merch imagery with SQL names, prices, and stock, and `directus` imports the legacy catalog into PostgreSQL. In Directus mode the first import also seeds stock; later imports update product details while stock, orders, payments, and admin records remain in PostgreSQL.
 
-To use the Directus API instead, add these variables to `.env.local` for local development or to the Vercel project's Environment Variables, then redeploy:
+1. Add the variables from `.env.example` to `.env.local`. Keep your existing local environment values and set a private `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET`.
+2. Start the seeded local PostgreSQL database with `docker compose up -d`.
+3. Install dependencies with `npm install`, then run `npm run dev` and open `http://localhost:3000`.
+4. Open `/admin` and sign in with `ADMIN_PASSWORD` to manage inventory and orders.
 
-```env
-MERCH_DATA_SOURCE=backend
-DIRECTUS_URL=https://your-directus.example.com
-DIRECTUS_TOKEN=your-directus-token # optional when the collection is public
-NEXT_PUBLIC_BE_URL=https://your-backend.example.com
-```
+Docker seeds six sample products with stock and the `INDI10` demo discount. Existing database volumes are not reseeded automatically; run `npm run db:setup` to apply the schema and insert missing seed rows. The script reads `.env.local`.
 
-If `MERCH_DATA_SOURCE` is unset or has any value other than `backend`, the local catalog is used.
+Set `MERCH_DATA_SOURCE=mock` to use bundled sample product images with the SQL seed catalog. To import the legacy catalog, set `MERCH_DATA_SOURCE=directus`, `DIRECTUS_URL`, and optionally `DIRECTUS_TOKEN`. Product IDs and prices sync to PostgreSQL; orders reserve and update stock there.
+
+`PAYMENT_SIMULATION=true` enables the demo payment path. It reveals the QR after three seconds and marks the order paid three seconds later. The displayed QR encodes a demo URI and does not transfer money. Set this to `false` when a real payment provider is connected.

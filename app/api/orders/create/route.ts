@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createMerchOrder, OrderError } from "@/lib/orders";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const BASE_API_URL =
-      process.env.NEXT_PUBLIC_BE_URL || "http://127.0.0.1:5000";
-    const response = await fetch(`${BASE_API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    return NextResponse.json(data, {
-      status: response.status,
-    });
+    const order = await createMerchOrder(await request.json());
+    return NextResponse.json(order, { status: 201 });
   } catch (error) {
-    console.error("Create order proxy error:", error);
-
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 },
-    );
+    const status = error instanceof OrderError ? error.status : 500;
+    const message = error instanceof Error ? error.message : "Could not create order.";
+    if (status === 500) console.error("Create merch order failed:", error);
+    return NextResponse.json({ error: message }, { status });
   }
 }

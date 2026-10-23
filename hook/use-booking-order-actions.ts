@@ -9,9 +9,7 @@ import type { CreateMerchOrderResponse } from "@/lib/api";
 import {
   createMerchOrder,
   type CreateMerchOrderPayload,
-  fetchBanks,
 } from "@/lib/api";
-import { trim } from "valibot";
 type UseMerchOrderActionsOptions = {
   cartItems: CartItem[];
   discountCode: string;
@@ -19,10 +17,11 @@ type UseMerchOrderActionsOptions = {
   phone: string;
   email: string;
   address: string;
+  shippingMethod: "pickup_store" | "pickup_event" | "delivery";
   shippingFee: number;
   subtotal: number;
   showErrorToast: (message: string) => void;
-  onOrderCreated: () => void;
+  onOrderCreated: (order: CreateMerchOrderResponse) => void;
 };
 
 export function useMerchOrderActions({
@@ -32,6 +31,7 @@ export function useMerchOrderActions({
   phone,
   email,
   address,
+  shippingMethod,
   shippingFee,
   subtotal,
   showErrorToast,
@@ -137,6 +137,7 @@ export function useMerchOrderActions({
         customer_email: trimmedEmail,
 
         customer_address: trimmedAddress,
+        shipping_method: shippingMethod,
 
         payment_method: PAYMENT_METHOD.BANK_TRANSFER,
 
@@ -162,22 +163,15 @@ export function useMerchOrderActions({
           selected_size: item.selectedSize ?? null, // thêm
         })),
       };
-      const [order, bankLookupResult] = await Promise.all([
-        createMerchOrder(payload),
-        fetchBanks().catch(() => null),
-      ]);
-
-      const matchedBank = bankLookupResult?.data?.find(
-        (bank) => bank.bin === order.payment_info.bin,
-      );
+      const order = await createMerchOrder(payload);
 
       setCreatedOrder(order);
 
-      setPaymentBankName(matchedBank?.shortName ?? order.payment_info.bin);
+      setPaymentBankName(order.payment_info.bin);
 
-      onOrderCreated();
-    } catch {
-      showErrorToast("Không thể tạo đơn hàng, vui lòng thử lại.");
+      onOrderCreated(order);
+    } catch (error) {
+      showErrorToast(error instanceof Error ? error.message : "Không thể tạo đơn hàng, vui lòng thử lại.");
     } finally {
       setIsSubmittingOrder(false);
     }
@@ -187,6 +181,7 @@ export function useMerchOrderActions({
     phone,
     email,
     address,
+    shippingMethod,
     computedTotal,
     appliedDiscount,
     onOrderCreated,

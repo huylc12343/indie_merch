@@ -1,17 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CopyIcon, Loader2, XIcon } from "lucide-react";
-import { toast } from "sonner";
-import Image from "next/image";
-import { PAYMENT_STATUS_TEXT } from "@/lib/types";
+import { QRCodeSVG } from "qrcode.react";
+import { Copy, Loader2, X } from "lucide-react";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-
 import type { CreateMerchOrderResponse } from "@/lib/api";
-import { getMerchOrder, confirmPayment } from "@/lib/api";
-
-import { ORDER_STATUS } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type PaymentModalProps = {
   open: boolean;
@@ -20,389 +14,140 @@ type PaymentModalProps = {
   onClose: () => void;
 };
 
-type PaymentTab = "qr" | "transfer";
-
-function PaymentTabButton({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: string;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "h-auto flex-1 rounded-[8px] px-3 py-2 text-sm font-medium transition-colors",
-        active
-          ? "bg-[#FF017E] text-white shadow-[0px_1px_3px_rgba(0,0,0,0.10)] hover:bg-[#FF017E]"
-          : "bg-transparent text-black hover:bg-white",
-      )}
-    >
-      {children}
-    </Button>
-  );
+function formatMoney(amount: number) {
+  return new Intl.NumberFormat("vi-VN").format(amount);
 }
 
-function PaymentStep({
-  number,
-  children,
-}: {
-  number: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-4">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#FF017E] text-base font-semibold text-white">
-        {number}
-      </div>
-
-      <div className="text-sm leading-4 text-black">{children}</div>
-    </div>
-  );
+function formatTime(seconds: number) {
+  return `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
 }
 
-function CopyField({
-  label,
-  displayValue,
-  copyValue,
-}: {
-  label: string;
-  displayValue: string;
-  copyValue: string;
-}) {
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(copyValue);
+export function PaymentModal({ open, order, bankName, onClose }: PaymentModalProps) {
+  const [activeTab, setActiveTab] = useState<"qr" | "transfer">("qr");
+  const [qrVisible, setQrVisible] = useState(false);
+  const [isAutoPaying, setIsAutoPaying] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
 
-      toast.success("Đã sao chép thông tin.", {
-        position: "top-center",
-      });
-    } catch {
-      toast.error("Không thể sao chép thông tin.", {
-        position: "top-center",
-      });
-    }
-  };
-
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 max-h-[32px]">
-        <p className="text-xs leading-6 text-[#6C6C6C]">{label}</p>
-        <p className="break-all text-sm leading-6 text-black">{displayValue}</p>
-      </div>
-
-      <Button
-        type="button"
-        onClick={handleCopy}
-        variant="ghost"
-        size="icon"
-        className="size-8 shrink-0 rounded-[8px] text-[#FF017E] hover:bg-white"
-      >
-        <CopyIcon className="size-4" />
-      </Button>
-    </div>
-  );
-}
-
-export function PaymentModal({
-  open,
-  order,
-  bankName,
-  onClose,
-}: PaymentModalProps) {
-  const [activeTab, setActiveTab] = useState<PaymentTab>("qr");
-
-  const [isQrLoading, setIsQrLoading] = useState(true);
-
-  const [paymentStatus, setPaymentStatus] = useState<string>("PENDING");
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [isExpired, setIsExpired] = useState(false);
-  const [checkingPayment, setCheckingPayment] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const handleConfirmPayment = async () => {
+  useEffect(() => {
     if (!order?.id) return;
+    setQrVisible(false);
+    setIsAutoPaying(false);
+    setActiveTab("qr");
 
-    try {
-      setIsConfirming(true);
-      console.log(
-        "Xác nhận thanh toán cho đơn hàng:",
-        order.id,
-        order.payment_info.description,
-        order.payment_info.amount,
-        order.payment_info.bin,
-        order.payment_info.account_name,
-        order.payment_info.account_number,
-        order.payment_info.qr_code,
-      );
-      await confirmPayment(
-        order.id,
-        order.payment_info.description, // chính là nội dung chuyển khoản
-      );
-
-      toast.success("Đã xác nhận thanh toán, vui lòng chờ...");
-    } catch (error) {
-      toast.error("Xác nhận thất bại, kiểm tra lại nội dung CK");
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-  /*
-    POLLING MỖI 3 GIÂY
-  */
-  // payment-modal.tsx
-  useEffect(() => {
-    if (!order?.expires_at) return;
-
-    setIsExpired(false);
-    setTimeLeft(0);
-
-    // 🔥 FIX timezone
-    const expireTime = new Date(order.expires_at).getTime();
-
-    const interval = setInterval(() => {
-      const now = new Date().getTime(); // vẫn OK
-
-      const diff = Math.max(0, Math.floor((expireTime - now) / 1000));
-
-      setTimeLeft(diff);
-
-      if (diff <= 0) {
-        setIsExpired(true);
-        clearInterval(interval);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [order?.expires_at]);
-
-  useEffect(() => {
-    if (!isExpired || !order?.id) return;
-
-    const handleExpire = async () => {
-      try {
-        const latest = await getMerchOrder(order.id);
-        setPaymentStatus(latest.status);
-      } catch (err) {
-        console.error(err);
-      }
-
-      // ⏳ hiển thị trạng thái 3s rồi đóng
-      setTimeout(() => {
-        onClose();
+    let paymentTimer: number | undefined;
+    const qrTimer = window.setTimeout(() => {
+      setQrVisible(true);
+      paymentTimer = window.setTimeout(async () => {
+        setIsAutoPaying(true);
+        try {
+          const response = await fetch(`/api/orders/${order.id}/simulate-payment`, { method: "POST" });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || "Không thể hoàn tất thanh toán mô phỏng.");
+          }
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : "Thanh toán mô phỏng thất bại.");
+          setIsAutoPaying(false);
+        }
       }, 3000);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(qrTimer);
+      if (paymentTimer !== undefined) window.clearTimeout(paymentTimer);
     };
+  }, [order?.id]);
 
-    handleExpire();
-  }, [isExpired, order?.id]);
-  if (!open || !order) {
-    return null;
-  }
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
+  useEffect(() => {
+    if (!open || !order?.expires_at) return;
+    const expiresAt = new Date(order.expires_at).getTime();
+    const update = () => setTimeLeft(Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [open, order?.expires_at]);
 
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-  const transferFields = [
-    {
-      label: "Tên ngân hàng",
-      displayValue: bankName ?? order.payment_info.bin,
-      copyValue: bankName ?? order.payment_info.bin,
-    },
-    {
-      label: "Tên tài khoản",
-      displayValue: order.payment_info.account_name,
-      copyValue: order.payment_info.account_name,
-    },
-    {
-      label: "Số tài khoản",
-      displayValue: order.payment_info.account_number,
-      copyValue: order.payment_info.account_number,
-    },
-    {
-      label: "Số tiền",
-      displayValue: new Intl.NumberFormat("vi-VN").format(
-        order.payment_info.amount,
-      ),
-      copyValue: order.payment_info?.amount?.toString() ?? "",
-    },
-    {
-      label: "Nội dung chuyển khoản",
-      displayValue: order.payment_info.description,
-      copyValue: order.payment_info.description,
-    },
+  if (!open || !order) return null;
+
+  const fields = [
+    { label: "Mã đơn", value: order.id },
+    { label: "Ngân hàng mô phỏng", value: bankName ?? order.payment_info.bin },
+    { label: "Tài khoản mô phỏng", value: order.payment_info.account_number },
+    { label: "Số tiền", value: `${formatMoney(order.payment_info.amount)} đ` },
+    { label: "Nội dung", value: order.payment_info.description },
   ];
 
+  const copy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success("Đã sao chép.");
+    } catch {
+      toast.error("Không thể sao chép thông tin.");
+    }
+  };
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4"
-      onClick={onClose}
-    >
-      <div
-        className="inline-flex w-full max-w-[700px] flex-col items-center gap-6 rounded-[12px] bg-white p-4 lg:p-8"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex w-full items-center justify-between gap-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="w-full max-w-[760px] rounded-xl bg-white p-5 text-black shadow-2xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-retroguard text-[32px] leading-8 text-[#FF017E]">
-              THANH TOÁN
-            </p>
-            {/* <div className="mt-2 flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin text-[#FF017E]" />
-                <p className="text-sm text-[#6C6C6C]">
-                  Trạng thái:{" "}
-                  {PAYMENT_STATUS_TEXT[paymentStatus] ?? paymentStatus}
-                </p>
-              </div>
-            </div> */}
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF017E]">Đơn {order.order_code ?? order.id.slice(0, 8)}</p>
+            <h2 id="payment-title" className="mt-1 font-retroguard text-3xl text-[#171717]">THANH TOÁN</h2>
+          </div>
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Đóng cửa sổ thanh toán"><X /></Button>
+        </div>
+
+        <div className="mt-6 flex gap-2 rounded-lg bg-[#F3F3F3] p-1">
+          <button type="button" onClick={() => setActiveTab("qr")} className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold ${activeTab === "qr" ? "bg-[#FF017E] text-white" : "text-[#555]"}`}>Mã QR</button>
+          <button type="button" onClick={() => setActiveTab("transfer")} className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold ${activeTab === "transfer" ? "bg-[#FF017E] text-white" : "text-[#555]"}`}>Thông tin demo</button>
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-[260px_1fr]">
+          <div className="flex flex-col items-center rounded-lg bg-[#F5F5F5] p-5">
+            <div className="flex size-[210px] items-center justify-center rounded-lg bg-white p-3">
+              {qrVisible ? (
+                <QRCodeSVG value={order.payment_info.qr_code} size={184} level="M" includeMargin />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-center text-sm text-[#6C6C6C]">
+                  <Loader2 className="size-7 animate-spin text-[#FF017E]" />
+                  <span>Mã QR sẽ hiện sau 3 giây</span>
+                </div>
+              )}
+            </div>
+            <p className="mt-4 w-full text-center text-xs font-semibold uppercase tracking-wide text-[#FF017E]">Mô phỏng thanh toán · không chuyển tiền thật</p>
+            <div className="mt-4 flex w-full items-center justify-between text-sm">
+              <span>Tổng tiền</span><strong>{formatMoney(order.payment_info.amount)} đ</strong>
+            </div>
+            <div className="mt-3 flex w-full items-center justify-between border-t border-[#DDD] pt-3 text-sm">
+              <span className="text-[#6C6C6C]">Hết hạn sau</span><strong>{timeLeft > 0 ? formatTime(timeLeft) : "Đã hết hạn"}</strong>
+            </div>
           </div>
 
-          <Button
-            type="button"
-            onClick={onClose}
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-[8px] text-black hover:bg-[#F5F5F5]"
-          >
-            <XIcon className="size-5" />
-          </Button>
-        </div>
-
-        <div className="flex w-full items-center gap-2 rounded-[10px] bg-[#F5F5F5] px-2 py-1">
-          <PaymentTabButton
-            active={activeTab === "qr"}
-            onClick={() => setActiveTab("qr")}
-          >
-            Mã QR
-          </PaymentTabButton>
-
-          <PaymentTabButton
-            active={activeTab === "transfer"}
-            onClick={() => setActiveTab("transfer")}
-          >
-            Chuyển khoản
-          </PaymentTabButton>
-        </div>
-
-        <div className="w-full">
-          {activeTab === "qr" ? (
-            <div className="flex w-full flex-col gap-6 lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-              <div className="flex w-full flex-col gap-5 rounded-[10px] bg-[#F5F5F5] p-5">
-                <div className="flex items-center justify-center rounded-[10px] bg-white p-3">
-                  <div className="relative h-[184px] w-[184px] overflow-hidden rounded-[10px] bg-white">
-                    {isQrLoading && (
-                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white">
-                        <Loader2 className="size-8 animate-spin text-[#FF017E]" />
-                      </div>
-                    )}
-                    <Image
-                      src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(order.payment_info.qr_code)}`}
-                      alt="QR thanh toán"
-                      fill
-                      unoptimized
-                      onLoad={() => setIsQrLoading(false)}
-                      onError={() => setIsQrLoading(false)}
-                      className="object-contain"
-                    />
+          <div className="flex flex-col justify-center">
+            {activeTab === "qr" ? (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold">Thanh toán thử nghiệm</h3>
+                <ol className="space-y-3 text-sm leading-6 text-[#444]">
+                  <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">1</span><span>Quét QR demo hoặc xem thông tin đơn hàng.</span></li>
+                  <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">2</span><span>QR hiện sau 3 giây. Hệ thống tự xác nhận thành công sau 3 giây tiếp theo.</span></li>
+                  <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">3</span><span>Trang sẽ tự chuyển sang xác nhận đơn khi trạng thái PostgreSQL được cập nhật.</span></li>
+                </ol>
+                {isAutoPaying && <p className="flex items-center gap-2 rounded-lg bg-pink-50 p-3 text-sm font-medium text-[#C90062]"><Loader2 className="size-4 animate-spin" />Đang hoàn tất thanh toán mô phỏng…</p>}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold">Chi tiết dùng trong bản demo</h3>
+                {fields.map((field) => (
+                  <div key={field.label} className="flex items-center justify-between gap-3 border-b border-[#EEE] pb-3">
+                    <div className="min-w-0"><p className="text-xs text-[#777]">{field.label}</p><p className="break-all text-sm font-medium">{field.value}</p></div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => void copy(field.value)} aria-label={`Sao chép ${field.label}`}><Copy className="size-4" /></Button>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-4 text-sm leading-6 text-black">
-                  <p>Tổng tiền</p>
-
-                  <p>
-                    {new Intl.NumberFormat("vi-VN").format(
-                      order.payment_info.amount,
-                    )}{" "}
-                    đ
-                  </p>
-                </div>
-                <div className="flex items-center justify-between rounded-[8px] bg-[#F5F5F5] px-3">
-                  <p className="text-xs text-[#6C6C6C]">Thời gian còn lại</p>
-                  <p
-                    className={cn(
-                      "text-base font-semibold",
-                      timeLeft <= 60 ? "text-red-500" : "text-[#FF017E]",
-                    )}
-                  >
-                    {isExpired ? "Hết hạn" : formatTime(timeLeft)}
-                  </p>
-                </div>
+                ))}
               </div>
-
-              <div className="space-y-5 max-w-[372px]">
-                <h1 className="font-bold text-16px leading-5 weight-700">
-                  Hướng dẫn thanh toán
-                </h1>
-                <PaymentStep number={1}>
-                  <p className="text-[14px] leading-4">
-                    Chọn tính năng <b>Quét mã QR</b> trên bất kỳ app Ngân hàng
-                    hay Ví điện tử mà bạn sử dụng
-                  </p>
-                </PaymentStep>
-
-                <PaymentStep number={2}>
-                  <p className="text-[14px] leading-4">
-                    Quét mã QR ở trang này
-                  </p>
-                </PaymentStep>
-
-                <PaymentStep number={3}>
-                  <p className="text-[14px] leading-4">
-                    Thực hiện thanh toán và xem kết quả giao dịch tại trang này
-                    (không tắt popup)
-                  </p>
-                </PaymentStep>
-              </div>
-            </div>
-          ) : (
-            <div className="flex w-full flex-col gap-6 lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-              <div className="rounded-[10px] bg-[#F5F5F5] p-5">
-                <div className="space-y-5">
-                  {transferFields.map((field) => (
-                    <CopyField
-                      key={field.label}
-                      label={field.label}
-                      displayValue={field.displayValue}
-                      copyValue={field.copyValue}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-5 max-w-[372px]">
-                <h1 className="font-bold text-16px leading-5 weight-700">
-                  Hướng dẫn thanh toán
-                </h1>
-                <PaymentStep number={1}>
-                  <p className="text-[14px] leading-4">
-                    Chọn tính năng <b>Chuyển tiền</b> trên bất kỳ app Ngân hàng
-                    hay Ví điện tử mà bạn sử dụng
-                  </p>
-                </PaymentStep>
-
-                <PaymentStep number={2}>
-                  <p className="text-[14px] leading-4">
-                    Sao chép chính xác các nội dung được ghi ở bên trái.{" "}
-                    <b>Lưu ý kiểm tra chính xác số tiền.</b>
-                  </p>
-                </PaymentStep>
-
-                <PaymentStep number={3}>
-                  <p className="text-[14px] leading-4">
-                    Thực hiện thanh toán và xem kết quả giao dịch tại trang này
-                    (không tắt popup)
-                  </p>
-                </PaymentStep>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

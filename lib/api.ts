@@ -49,7 +49,21 @@ export type CreateOrderResponse = {
 };
 export type CreateMerchOrderResponse = {
   id: string;
+  order_code?: string;
   status: OrderStatus;
+  subtotal?: number;
+  shipping_fee?: number;
+  discount_code_amount?: number;
+  total?: number;
+  order_items?: Array<{
+    merch_id: string;
+    unit_price: number;
+    quantity: number;
+    selected_color?: string | null;
+    selected_size?: string | null;
+    selected_type?: string | null;
+    image?: string;
+  }>;
   payment_info: {
     account_name: string;
     account_number: string;
@@ -101,6 +115,7 @@ export type CreateMerchOrderPayload = {
   customer_phone: string;
   customer_email: string;
   customer_address?: string;
+  shipping_method?: "pickup_store" | "pickup_event" | "delivery";
   payment_method?: PaymentMethod;
   subtotal: number;
   discount_combo: number;
@@ -145,8 +160,8 @@ export async function createMerchOrder(
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Create order failed: ${error}`);
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || `Create order failed: HTTP ${response.status}`);
   }
 
   const data = await response.json();
