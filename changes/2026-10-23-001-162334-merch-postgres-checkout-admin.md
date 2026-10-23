@@ -1,7 +1,7 @@
 # Merch PostgreSQL checkout and admin
 
 - Created: 2026-10-23T16:23:34+07:00
-- Updated: 2026-10-23T16:45:07+07:00
+- Updated: 2026-10-23T16:48:35+07:00
 
 ## Request
 
@@ -17,6 +17,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Prepared the `preview/merch-postgres-admin` branch for the requested Git push and Vercel Preview deployment.
 - Added a UI-only mock catalog when `MERCH_DATA_SOURCE=mock` and `DATABASE_URL` is unset, following the owner's request to review the interface before connecting a cloud database.
 - Replaced hardcoded bank details in the legacy ticket demo with DEMO placeholders and a non-banking demo QR URI after deployment review flagged the sensitive values. Docker Compose is excluded from the Vercel source upload.
+- Deployed commit `b300a9b3e319eb294c21bc7ee17669a3e8c30bd5` directly through the Vercel API as a Preview, with `MERCH_DATA_SOURCE=mock` for the preview environment.
 
 ## Important files
 
@@ -39,9 +40,12 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Standalone runtime smoke check served `/admin` and verified the configured admin login/session flow.
 - `git diff --check` passed on 2026-10-23.
 - TypeScript and the changed-file whitespace check passed again after the UI Preview and demo-payment adjustments.
+- Vercel deployment `dpl_BhdHPPP6ou7qsCFFNKAd957td9bW` reached `READY`. The homepage, `/check-out`, and `/admin` returned HTTP 200; the homepage HTML contains the mock catalog and bundled merch image paths.
+- Preview URL: https://indie-merch-86bgk23r2-nguyen-quang-huys-projects-bd214c44.vercel.app
 
 ## Remaining risks
 
 - Full database-backed checkout and payment could not be verified: the `pg` dependency is unavailable in the offline npm cache, and the local Docker/PostgreSQL engine could not be started in this environment. The authenticated products API returned 503 while `pg` was missing.
 - RTK 0.50.0 is present, but its gain database could not be opened and no automatic hook is installed; native git commands were used where needed.
-- GitHub connectivity is blocked by the configured network proxy. The owner approved Vercel team access; the Preview is being deployed directly through the Vercel API.
+- GitHub connectivity is blocked by the configured network proxy. The owner approved Vercel team access and selected UI-only review; no cloud PostgreSQL database was connected, so database-backed checkout and admin persistence remain unavailable in this Preview.
+- The local dependency lock could not be regenerated with npm because registry access is blocked. The Preview uses `npm install --package-lock=false` to install dependencies on Vercel.
