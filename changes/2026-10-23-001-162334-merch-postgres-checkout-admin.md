@@ -1,7 +1,7 @@
 # Merch PostgreSQL checkout and admin
 
 - Created: 2026-10-23T16:23:34+07:00
-- Updated: 2026-10-23T16:27:38+07:00
+- Updated: 2026-10-23T16:38:33+07:00
 
 ## Request
 
@@ -15,6 +15,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Added a standalone start script that loads `.env.local` before starting Next.js, so environment-based admin configuration works in standalone mode.
 - Updated README setup and configuration notes.
 - Prepared the `preview/merch-postgres-admin` branch for the requested Git push and Vercel Preview deployment.
+- Added a UI-only mock catalog when `MERCH_DATA_SOURCE=mock` and `DATABASE_URL` is unset, following the owner's request to review the interface before connecting a cloud database.
 
 ## Important files
 
@@ -41,4 +42,4 @@ Implement merch selection through checkout and payment, store orders and stock i
 
 - Full database-backed checkout and payment could not be verified: the `pg` dependency is unavailable in the offline npm cache, and the local Docker/PostgreSQL engine could not be started in this environment. The authenticated products API returned 503 while `pg` was missing.
 - RTK 0.50.0 is present, but its gain database could not be opened and no automatic hook is installed; native git commands were used where needed.
-- GitHub connectivity is blocked by the configured network proxy. Vercel project `indie-merch` was found, but deployment requires the owner to approve access to its team through the generated consent link.
+- GitHub connectivity is blocked by the configured network proxy. The owner approved Vercel team access; the Preview is being deployed directly through the Vercel API.

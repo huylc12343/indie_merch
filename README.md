@@ -48,4 +48,6 @@ Docker seeds six sample products with stock and the `INDI10` demo discount. Exis
 
 Set `MERCH_DATA_SOURCE=mock` to use bundled sample product images with the SQL seed catalog. To import the legacy catalog, set `MERCH_DATA_SOURCE=directus`, `DIRECTUS_URL`, and optionally `DIRECTUS_TOKEN`. Product IDs and prices sync to PostgreSQL; orders reserve and update stock there.
 
+For a UI-only Preview without a database, set `MERCH_DATA_SOURCE=mock` and leave `DATABASE_URL` unset. The catalog uses bundled sample products; saving orders and admin changes still requires PostgreSQL.
+
 `PAYMENT_SIMULATION=true` enables the demo payment path. It reveals the QR after three seconds and marks the order paid three seconds later. The displayed QR encodes a demo URI and does not transfer money. Set this to `false` when a real payment provider is connected.

@@ -115,6 +115,9 @@ async function syncDirectusCatalog(
 
 export async function fetchMerch(): Promise<MerchItem[]> {
   const source = (process.env.MERCH_DATA_SOURCE || "postgres").toLowerCase();
+  if (source === "mock" && !process.env.DATABASE_URL) {
+    return replaceMerchImages(localMerch);
+  }
   const database = await getDatabase();
   const directusItems = source === "directus" ? await fetchFromDirectus() : null;
   if (directusItems) await syncDirectusCatalog(database, directusItems);
