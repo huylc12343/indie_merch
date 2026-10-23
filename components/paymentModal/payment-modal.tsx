@@ -6,6 +6,7 @@ import { Copy, Loader2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import type { CreateMerchOrderResponse } from "@/lib/api";
+import { simulateMerchPayment } from "@/lib/api";
 
 type PaymentModalProps = {
   open: boolean;
@@ -40,11 +41,7 @@ export function PaymentModal({ open, order, bankName, onClose }: PaymentModalPro
       paymentTimer = window.setTimeout(async () => {
         setIsAutoPaying(true);
         try {
-          const response = await fetch(`/api/orders/${order.id}/simulate-payment`, { method: "POST" });
-          if (!response.ok) {
-            const payload = await response.json().catch(() => null);
-            throw new Error(payload?.error || "Không thể hoàn tất thanh toán mô phỏng.");
-          }
+          await simulateMerchPayment(order.id);
         } catch (error) {
           toast.error(error instanceof Error ? error.message : "Thanh toán mô phỏng thất bại.");
           setIsAutoPaying(false);
@@ -130,7 +127,7 @@ export function PaymentModal({ open, order, bankName, onClose }: PaymentModalPro
                 <ol className="space-y-3 text-sm leading-6 text-[#444]">
                   <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">1</span><span>Quét QR demo hoặc xem thông tin đơn hàng.</span></li>
                   <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">2</span><span>QR hiện sau 3 giây. Hệ thống tự xác nhận thành công sau 3 giây tiếp theo.</span></li>
-                  <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">3</span><span>Trang sẽ tự chuyển sang xác nhận đơn khi trạng thái PostgreSQL được cập nhật.</span></li>
+                  <li className="flex gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FF017E] font-semibold text-white">3</span><span>Trang sẽ tự chuyển sang xác nhận khi thanh toán hoàn tất.</span></li>
                 </ol>
                 {isAutoPaying && <p className="flex items-center gap-2 rounded-lg bg-pink-50 p-3 text-sm font-medium text-[#C90062]"><Loader2 className="size-4 animate-spin" />Đang hoàn tất thanh toán mô phỏng…</p>}
               </div>

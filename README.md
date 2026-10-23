@@ -50,4 +50,6 @@ Set `MERCH_DATA_SOURCE=mock` to use bundled sample product images with the SQL s
 
 For a UI-only Preview without a database, set `MERCH_DATA_SOURCE=mock` and leave `DATABASE_URL` unset. The catalog uses bundled sample products; saving orders and admin changes still requires PostgreSQL.
 
+For the complete browser demo, set `NEXT_PUBLIC_DEMO_MODE=true` and `MERCH_DATA_SOURCE=mock`, then rebuild. All six products are available; checkout, the `INDI10` discount, simulated payment, and admin product/order management use localStorage in the same browser. In `/admin`, choose **Tiếp tục với Google (Demo)** to enter the mock dashboard. This is simulated sign-in and payment; it does not contact Google or a bank. Data survives page reloads and is limited to that browser and Preview hostname. Set `NEXT_PUBLIC_DEMO_MODE=false` for the PostgreSQL-backed application.
+
 `PAYMENT_SIMULATION=true` enables the demo payment path. It reveals the QR after three seconds and marks the order paid three seconds later. The displayed QR encodes a demo URI and does not transfer money. Set this to `false` when a real payment provider is connected.

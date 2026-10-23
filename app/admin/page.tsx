@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Box, Check, ClipboardList, LogOut, PackagePlus, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DEMO_MODE, mockAdminRequest } from "@/lib/mock-store";
 
 type Product = {
   id: string;
@@ -56,6 +57,7 @@ const statusName: Record<string, string> = {
 };
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
+  if (DEMO_MODE) return mockAdminRequest(url, init) as T;
   const response = await fetch(url, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -123,12 +125,12 @@ export default function AdminPage() {
     products: products.filter((product) => product.active).length,
   }), [orders, products]);
 
-  const login = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const login = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     setBusy("login");
     setError(null);
     try {
-      await api("/api/admin/login", { method: "POST", body: JSON.stringify({ password }) });
+      await api("/api/admin/login", { method: "POST", body: JSON.stringify({ password, provider: DEMO_MODE ? "google-demo" : undefined }) });
       setAuthenticated(true);
       setPassword("");
       await loadData();
@@ -224,7 +226,16 @@ export default function AdminPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF017E]">Khu vực riêng</p>
             <h2 className="mt-2 font-retroguard text-3xl">ĐĂNG NHẬP ADMIN</h2>
             <p className="mt-3 text-sm leading-6 text-[#666]">Quản lý sản phẩm, tồn kho và đơn hàng merch.</p>
-            {!configured ? (
+            {DEMO_MODE ? (
+              <div className="mt-6 space-y-4">
+                <Button type="button" variant="outline" disabled={busy === "login"} onClick={() => void login()} className="h-12 w-full gap-3 font-semibold">
+                  <span aria-hidden="true" className="text-xl font-bold text-blue-600">G</span>
+                  {busy === "login" ? "ĐANG ĐĂNG NHẬP…" : "Tiếp tục với Google (Demo)"}
+                </Button>
+                <p className="text-xs leading-5 text-[#666]">Đăng nhập giả lập. Sản phẩm và đơn thử được lưu trên trình duyệt này.</p>
+                {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+              </div>
+            ) : !configured ? (
               <div className="mt-6 rounded-lg bg-amber-50 p-4 text-sm leading-6 text-amber-900">Chưa cấu hình admin. Thêm <code>ADMIN_PASSWORD</code> và <code>ADMIN_SESSION_SECRET</code> vào <code>.env.local</code>, sau đó khởi động lại ứng dụng.</div>
             ) : (
               <form onSubmit={login} className="mt-6 space-y-4">
@@ -237,6 +248,7 @@ export default function AdminPage() {
         </div>
       ) : (
         <div className="mx-auto max-w-7xl px-4 py-7 md:px-8 md:py-10">
+          {DEMO_MODE && <p className="mb-5 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">Google Demo · dữ liệu thử được lưu trên trình duyệt này. Mua merch bằng cùng trình duyệt để xem đơn tại đây.</p>}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FF017E]">Tổng quan</p><h2 className="mt-1 font-retroguard text-3xl md:text-4xl">BẢNG ĐIỀU KHIỂN</h2></div>
             <Button type="button" variant="outline" onClick={() => void loadData()} disabled={loading} className="gap-2"><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />Làm mới</Button>

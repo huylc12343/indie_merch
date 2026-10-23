@@ -1,7 +1,7 @@
 # Merch PostgreSQL checkout and admin
 
 - Created: 2026-10-23T16:23:34+07:00
-- Updated: 2026-10-23T16:48:35+07:00
+- Updated: 2026-10-23T16:57:01+07:00
 
 ## Request
 
@@ -18,6 +18,9 @@ Implement merch selection through checkout and payment, store orders and stock i
 - Added a UI-only mock catalog when `MERCH_DATA_SOURCE=mock` and `DATABASE_URL` is unset, following the owner's request to review the interface before connecting a cloud database.
 - Replaced hardcoded bank details in the legacy ticket demo with DEMO placeholders and a non-banking demo QR URI after deployment review flagged the sensitive values. Docker Compose is excluded from the Vercel source upload.
 - Deployed commit `b300a9b3e319eb294c21bc7ee17669a3e8c30bd5` directly through the Vercel API as a Preview, with `MERCH_DATA_SOURCE=mock` for the preview environment.
+- Enabled all bundled merch for purchase and added `NEXT_PUBLIC_DEMO_MODE` for the requested complete browser demo: localStorage products, stock reservations, orders, discounts, payment completion, and admin management.
+- Added an explicitly labeled Google Demo sign-in for the browser-only admin. The real server admin authentication and PostgreSQL routes retain their existing checks.
+- Added a client catalog that reflects admin edits and stock changes from the same browser, including changes made in another tab.
 
 ## Important files
 
@@ -26,6 +29,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - `app/admin/`, `app/api/admin/`, `app/api/orders/`
 - `scripts/db-setup.mjs`, `scripts/start-standalone.mjs`, `package.json`
 - `README.md`
+- `lib/mock-store.ts`, `lib/localMerch.ts`, `components/merchInfo/merchCatalog.tsx`
 
 ## Decisions and assumptions
 
@@ -42,6 +46,7 @@ Implement merch selection through checkout and payment, store orders and stock i
 - TypeScript and the changed-file whitespace check passed again after the UI Preview and demo-payment adjustments.
 - Vercel deployment `dpl_BhdHPPP6ou7qsCFFNKAd957td9bW` reached `READY`. The homepage, `/check-out`, and `/admin` returned HTTP 200; the homepage HTML contains the mock catalog and bundled merch image paths.
 - Preview URL: https://indie-merch-86bgk23r2-nguyen-quang-huys-projects-bd214c44.vercel.app
+- TypeScript passed after the complete mock flow was added. An isolated localStorage verification exercised all six available products, Google Demo session/login/logout, canonical pricing, `INDI10`, delivery shipping, order persistence, payment idempotency, admin edits, cancellation/expiry stock release, and invalid quantities/variants.
 
 ## Remaining risks
 
@@ -49,3 +54,4 @@ Implement merch selection through checkout and payment, store orders and stock i
 - RTK 0.50.0 is present, but its gain database could not be opened and no automatic hook is installed; native git commands were used where needed.
 - GitHub connectivity is blocked by the configured network proxy. The owner approved Vercel team access and selected UI-only review; no cloud PostgreSQL database was connected, so database-backed checkout and admin persistence remain unavailable in this Preview.
 - The local dependency lock could not be regenerated with npm because registry access is blocked. The Preview uses `npm install --package-lock=false` to install dependencies on Vercel.
+- Full mock mode stores data in localStorage, shared only within the same browser and Preview hostname. Google sign-in is simulated; no Google identity or real payment is processed.

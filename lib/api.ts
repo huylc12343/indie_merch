@@ -1,4 +1,5 @@
 import { parse } from "valibot";
+import { DEMO_MODE, createMockOrder, getMockDiscount, getMockOrder, settleMockOrder } from "./mock-store";
 import {
   merchOrderSchema,
   discountCodeSchema,
@@ -13,6 +14,7 @@ import {
 export async function checkDiscountCode(
   code: string,
 ): Promise<DiscountCodeOutput | null> {
+  if (DEMO_MODE) return getMockDiscount(code);
   const trimmedCode = code.trim().toLowerCase();
   if (!trimmedCode) return null;
 
@@ -151,6 +153,7 @@ export async function createOrder(
 export async function createMerchOrder(
   body: CreateMerchOrderPayload,
 ): Promise<CreateMerchOrderResponse> {
+  if (DEMO_MODE) return createMockOrder(body);
   const response = await fetch(`/api/orders/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -210,6 +213,7 @@ export async function fetchBanks(): Promise<BankLookupResponse> {
 export async function getMerchOrder(
   orderId: string,
 ): Promise<CreateMerchOrderResponse> {
+  if (DEMO_MODE) return getMockOrder(orderId);
   const response = await fetch(`/api/orders/${orderId}`, {
     cache: "no-store",
   });
@@ -257,6 +261,10 @@ export async function calculateShippingFee(
   address: string,
   subtotal: number,
 ): Promise<{ shipping_fee: number }> {
+  if (DEMO_MODE) {
+    if (!address.trim()) throw new Error("Vui lòng nhập địa chỉ nhận hàng.");
+    return { shipping_fee: 30000 };
+  }
   const response = await fetch("/api/shipping/calculate", {
     method: "POST",
     headers: {
@@ -294,4 +302,14 @@ export async function confirmPayment(orderId: string, transferContent: string) {
   }
 
   return res.json();
+}
+
+export async function simulateMerchPayment(orderId: string) {
+  if (DEMO_MODE) return settleMockOrder(orderId);
+  const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/simulate-payment`, { method: "POST" });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error || "Không thể hoàn tất thanh toán mô phỏng.");
+  }
+  return response.json();
 }
